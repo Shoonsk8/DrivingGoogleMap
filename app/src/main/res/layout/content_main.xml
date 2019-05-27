@@ -10,7 +10,7 @@
     tools:context=".MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/map_container2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -20,7 +20,7 @@
         <fragment
             android:id="@+id/map"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="200dp"
             android:layout_weight="0.7"
             class="com.google.android.gms.maps.SupportMapFragment"
             map:cameraTargetLat="-33.87365"
@@ -31,16 +31,17 @@
             android:id="@+id/streetviewpanorama"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.3"
+            android:layout_below="@+id/map"
             class="com.google.android.gms.maps.SupportStreetViewPanoramaFragment" />
 
         <com.shoon.drivinggooglemap.DialView
             android:id="@+id/dial_volume"
             app:dot_radius="10"
-            app:dial_radius="100"
+            app:dial_radius="200"
             app:dial_color="@android:color/darker_gray"
+            android:layout_alignBaseline="@+id/streetviewpanorama"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-    </LinearLayout>
+    </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

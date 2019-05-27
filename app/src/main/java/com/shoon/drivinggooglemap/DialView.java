@@ -188,10 +188,7 @@ public class DialView extends View {
         // 画面のサイズを取得する
         WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = manager.getDefaultDisplay();
-        iWidthCanvas = display.getWidth();
-        iHeightCanvas = display.getHeight();
-        iCenterX=iWidthCanvas/2;
-        iCenterY=iHeightCanvas/2;
+
 
         if(attrs!=null){
 
@@ -210,7 +207,7 @@ public class DialView extends View {
             paintDot.setAntiAlias(true);
 
 
-            this.setiDotMovingRadius( (int)( typedArray.getInt((int)(R.styleable.DialView_dial_radius),500)*0.8));
+            this.setiDotMovingRadius( (int)( typedArray.getInt((int)(R.styleable.DialView_dial_radius),500)*0.9));
             this.setiDotRaidus( typedArray.getColor( R.styleable.DialView_dot_radius, 50) );
             paintDot.setColor(Color.RED);    // (4)
             paintDot.setStyle(Style.FILL);    // (5)
@@ -237,6 +234,10 @@ public class DialView extends View {
             fY = iCenterY-this.getiDotMovingRadius();
 
         }
+        iWidthCanvas = display.getWidth();
+        iHeightCanvas = display.getHeight();
+        iCenterX=iWidthCanvas/2;
+        iCenterY=iHeightCanvas-iDialRadius*2;
     }
 
 
@@ -244,19 +245,20 @@ public class DialView extends View {
     protected void onDraw(Canvas canvas) {
         // 格子を描画しない
     //    drawGrid(canvas, 50);
+
         paintDial.setColor(Color.DKGRAY );
         paintDial.setStyle( Style.FILL);
-        canvas.drawCircle(iCenterX, iCenterY+30, iDialRadius, paintDial);
+        canvas.drawCircle(iCenterX, iCenterY+5, iDialRadius, paintDial);
         paintDial.setColor( Color.BLACK );
         paintDial.setStyle( Style.FILL);
         canvas.drawCircle(iCenterX, iCenterY, iDialRadius, paintDial);
         paintDial.setStyle( Style.FILL);
         paintDial.setColor(Color.DKGRAY );
 
-        canvas.drawCircle(iCenterX, iCenterY-20, iDialRadius-200, paintDial);
+        canvas.drawCircle(iCenterX, iCenterY-5, (int)(iDialRadius*0.8), paintDial);
         paintDial.setStyle( Style.FILL);
         paintDial.setColor(Color.LTGRAY );
-        canvas.drawCircle(iCenterX, iCenterY, iDialRadius-210, paintDial);
+        canvas.drawCircle(iCenterX, iCenterY, (int)(iDialRadius*0.75), paintDial);
         // 円を描画する
         canvas.drawCircle(fX, fY, iDotRaidus, paintDot);    // (6)
   //debug purpose
@@ -385,19 +387,5 @@ public class DialView extends View {
      * @param canvas
      * @param interval 格子を描く間隔
      */
-    private void drawGrid(final Canvas canvas, int interval) {
 
-
-
-        // 格子を描画する
-        Paint paint = new Paint();        // (15)
-        paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(1);
-        for (int i = 0; i < Math.max(iWidthCanvas, iHeightCanvas); i += interval) {
-            canvas.drawText(Integer.toString(i), i, paint.getTextSize(), paint);
-            canvas.drawLine(i, 0, i, iHeightCanvas, paint);
-            canvas.drawText(Integer.toString(i), 0, i, paint);
-            canvas.drawLine(0, i, iWidthCanvas, i, paint);
-        }
-    }
 }
