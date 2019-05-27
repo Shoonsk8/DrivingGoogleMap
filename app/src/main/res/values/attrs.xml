@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+
+
+    <declare-styleable name="DialView">
+        <attr name="dial_color" format="color">#008080</attr>
+        <attr name="dial_radius" format="integer">200</attr>
+        <attr name="dot_color" format="color"/>
+        <attr name="dot_radius" format="integer"/>
+    </declare-styleable>
+
+
+</resources>
