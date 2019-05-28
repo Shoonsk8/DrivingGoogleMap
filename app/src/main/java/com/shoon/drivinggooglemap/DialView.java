@@ -382,10 +382,4 @@ public class DialView extends View {
 
         return true;    // (14)
     }
-    /**
-     * 画面に格子を描画する。
-     * @param canvas
-     * @param interval 格子を描く間隔
-     */
-
 }
