@@ -14,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -42,6 +43,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
+import com.google.android.gms.maps.model.StreetViewPanoramaOrientation;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -111,8 +113,10 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
         drawer.addDrawerListener( toggle );
         toggle.syncState();
+        tvDebug=findViewById( R.id.textMonitor );
         navigationView.setNavigationItemSelectedListener( this );
-        final DialView gv=findViewById(R.id.dial_volume);
+        final DialView dvSteering=findViewById(R.id.dial_volume);
+
         final LatLng markerPosition;
         if (savedInstanceState == null) {
             markerPosition = SYDNEY;
@@ -120,7 +124,7 @@ public class MainActivity extends AppCompatActivity
             markerPosition = savedInstanceState.getParcelable(MARKER_POSITION_KEY);
         }
         final Handler handler=new Handler(  );
-        tvDebug=findViewById( R.id.textMonitor );
+
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
                 (SupportStreetViewPanoramaFragment)
                         getSupportFragmentManager().findFragmentById(R.id.streetviewpanorama);
@@ -129,41 +133,37 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
-                       /* panorama.setOnStreetViewPanoramaCameraChangeListener( new StreetViewPanorama.OnStreetViewPanoramaCameraChangeListener() {
-                            @Override
-                            public void onStreetViewPanoramaCameraChange(StreetViewPanoramaCamera streetViewPanoramaCamera) {
-                                if(panorama.getLocation()!=null){
-
-                                    double str= panorama.getLocation().position.latitude;
-
-                                }
-                            }
-                        } );*/
                         mStreetViewPanorama = panorama;
-
                         mStreetViewPanorama.setOnStreetViewPanoramaChangeListener(new StreetViewPanorama.OnStreetViewPanoramaChangeListener() {
                             @Override
                             public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
                                 if (streetViewPanoramaLocation != null && streetViewPanoramaLocation.links != null) {
-                                    tvDebug.setText( panorama.getLocation().position.toString() );
-                                    // location is present
+                                    tvDebug.setText( Integer.toString( i++ )+" ");
+                                    tvDebug.append(  panorama.getLocation().toString() );
+                                    tvDebug.append(  panorama.getPanoramaCamera().toString() );
+                                   // tvDebug.append(  panorama.pointToOrientation(  ) );
+
+
+
                                 } else {
                                     // location not available
                                 }
                             }
                         });
-                        // Only need to set the position once as the streetview fragment will maintain
-                        // its state.
                         if (savedInstanceState == null) {
                             mStreetViewPanorama.setPosition(SYDNEY);
                         }
-                        handler.post( new Runnable() {
+                        dvSteering.setOnTouchListener( new View.OnTouchListener() {
                             @Override
-                            public void run() {
-
-
-
-                               //tvDebug.setText( "test");
+                            public boolean onTouch(View v, MotionEvent event) {
+                                StreetViewPanoramaOrientation svpo=new StreetViewPanoramaOrientation(0,dvSteering.getBearig());
+                                tvDebug.setText( Float.toString( svpo.bearing)+","+Float.toString( svpo.tilt));
+                                tvDebug.append((panorama.orientationToPoint(svpo)).toString());
+                                long lDulation=10;
+                                StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(0,0,dvSteering.getBearig());
+                                panorama.animateTo( camera ,lDulation);
+                               // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                                return false;
                             }
                         } );
 

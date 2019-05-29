@@ -15,16 +15,11 @@ import android.view.View;
 import android.view.WindowManager;
 
 
-/**
- * 指を追うように円動かす。
- * @author marunomaruno
- * @see Graphics04Activity
- */
 public class DialView extends View {
     private Paint paintDot, paintDial;
     private float fX;    // 図形を描画する X 座標    // (1)
     private float fY;    // 図形を描画する Y 座標    // (2)
-    private double dTheta;
+    private double dTheta=3.14;
     private double dRotation=-90; //Degree of Dial starting point from horizontal line
     int iCenterX=500;
     int iCenterY=500;
@@ -294,7 +289,13 @@ public class DialView extends View {
         return dTheta;
     }
 
-
+    public float getBearig(){
+        float fBearing=(float)getDegree()-180;
+        if(fBearing<0){
+            fBearing=180+(float)getDegree();
+        }
+        return fBearing;
+    }
 
     public double getDegree(){
 
