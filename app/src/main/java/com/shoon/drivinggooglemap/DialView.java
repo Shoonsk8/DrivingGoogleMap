@@ -1,6 +1,7 @@
 package com.shoon.drivinggooglemap;
 
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -19,8 +20,10 @@ public class DialView extends View {
     private Paint paintDot, paintDial;
     private float fX;    // 図形を描画する X 座標    // (1)
     private float fY;    // 図形を描画する Y 座標    // (2)
-    private double dTheta=3.14;
+    private double dTheta=3.15;
+    private double dDiscrepancyBearing=0;
     private double dRotation=-90; //Degree of Dial starting point from horizontal line
+    private double dPI=Math.PI;
     int iCenterX=500;
     int iCenterY=500;
     int iDialRadius;
@@ -29,6 +32,7 @@ public class DialView extends View {
     int iDotRaidus;// Radius of a dot
     int iWidthCanvas ;
     int iHeightCanvas;
+
     Context context;
 
 
@@ -254,6 +258,9 @@ public class DialView extends View {
         canvas.drawCircle(iCenterX, iCenterY, (int)(iDialRadius*0.75), paintDial);
         // 円を描画する
         paintDial.setStyle( Style.FILL);
+        float fTheta= (float) (dTheta+Math.PI/2);
+        fX= (float) (Math.cos(fTheta) *iDotMovingRadius+iCenterX);
+        fY= (float) (Math.sin(fTheta) *iDotMovingRadius+iCenterY);
         canvas.drawCircle(fX, fY, iDotRaidus, paintDot);    // (6)
      }
 
@@ -290,11 +297,11 @@ public class DialView extends View {
     }
 
     public float getBearig(){
-        float fBearing=(float)getDegree()-180;
+        float fBearing=(float)(dTheta+dDiscrepancyBearing-dPI);
         if(fBearing<0){
-            fBearing=180+(float)getDegree();
+            fBearing=(float)(dPI+dTheta+dDiscrepancyBearing);
         }
-        return fBearing;
+        return (float)(fBearing*180/dPI);
     }
 
     public double getDegree(){
@@ -340,53 +347,48 @@ public class DialView extends View {
                 double dCos=dX/dC;
                 double dSin=dY/dC;
                 dTheta=getTheta(dCos,dSin,dRotation);
-                double dPi=Math.PI;
+
                 if(dSin>Math.sin(Math.toRadians(dRotation))) {
                     float fTX=-(float) (dCos * this.getiDotMovingRadius()) + iCenterX,
                           fTY=-(float) (dSin * this.getiDotMovingRadius()) + iCenterY;
                     //color chages depends on rate
 
-                    if(dTheta<dPi/8 ){//南
+                    if(dTheta<dPI/8 ){//南
                         paintDot.setColor(Color.BLACK);
-                    }else if(dTheta>=dPi/8&&dTheta<3*dPi/8){//南東
+                    }else if(dTheta>=dPI/8&&dTheta<3*dPI/8){//南東
                         paintDot.setColor(Color.CYAN);
-                    }else if(dTheta>=3*dPi/6&&dTheta<5*dPi/8){//西
+                    }else if(dTheta>=3*dPI/6&&dTheta<5*dPI/8){//西
                          paintDot.setColor(Color.BLUE);
-                    }else  if(dTheta>=5*dPi/8&&dTheta<7*dPi/8){//北西
+                    }else  if(dTheta>=5*dPI/8&&dTheta<7*dPI/8){//北西
                         paintDot.setColor(Color.WHITE);
-                    }else if(dTheta>=7*dPi/8.5&&dTheta<9*dPi/8){//北
+                    }else if(dTheta>=7*dPI/8.5&&dTheta<9*dPI/8){//北
                         paintDot.setColor(Color.GREEN);
-                    }else if(dTheta>=9*dPi/8&&dTheta<11*dPi/8){//北東
+                    }else if(dTheta>=9*dPI/8&&dTheta<11*dPI/8){//北東
                         paintDot.setColor(Color.YELLOW);
-                    }else if(dTheta>=11*dPi/8&&dTheta<13*dPi/8){//東
+                    }else if(dTheta>=11*dPI/8&&dTheta<13*dPI/8){//東
                         paintDot.setColor(Color.RED);
-                    }else if(dTheta>=13*dPi/8.5&&dTheta<15*dPi/8){//南東
+                    }else if(dTheta>=13*dPI/8.5&&dTheta<15*dPI/8){//南東
                         paintDot.setColor(Color.MAGENTA);
-                    }else  if(dTheta>=15*dPi/8&&dTheta<2*dPi){//南
+                    }else  if(dTheta>=15*dPI/8&&dTheta<2*dPI){//南
                         paintDot.setColor(Color.BLACK);
                     }
-
-                    //prevents from skipping from min to max or from max to min
-                    if(fTX>iCenterX&&fX>iCenterX){
-                        fX=fTX;
-                        fY=fTY;
-                    }else if(fTX<=iCenterX&&fX<=iCenterX){
-                        fX=fTX;
-                        fY=fTY;
-                    }else if(fTY<iCenterY&&fY<iCenterY){
-                        fX=fTX;
-                        fY=fTY;
-                    }
-
                 }
                 invalidate();
                 return true;
               case MotionEvent.ACTION_UP:        // 指を離した    // (12)
-                return false;    // 何もしない
+                  dDiscrepancyBearing=dTheta-dPI;
+                  dTheta=dPI;
+
+                  postInvalidateOnAnimation();
+                return false;
 
 
             default:
                 return false;
         }
+    }
+    public boolean isGoingForward(){
+        if(dTheta>3.1||dTheta<3.2)return true;
+        return false;
     }
 }

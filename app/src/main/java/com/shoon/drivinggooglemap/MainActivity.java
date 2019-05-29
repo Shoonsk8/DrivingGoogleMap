@@ -142,8 +142,16 @@ public class MainActivity extends AppCompatActivity
                                     tvDebug.setText( Integer.toString( i++ )+" ");
                                     tvDebug.append(  panorama.getLocation().toString() );
                                     tvDebug.append(  panorama.getPanoramaCamera().toString() );
+                                    tvDebug.append( "steering bearing="+Float.toString( dvSteering.getBearig()) );
+                                    tvDebug.append( "steering angle="+Double.toString( dvSteering.getDegree() ));
                                    // tvDebug.append(  panorama.pointToOrientation(  ) );
-
+                                    long lDulation=10;
+                                    StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(0,0,dvSteering.getBearig());
+                                    panorama.animateTo( camera ,lDulation);
+                                    // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                                    if(dvSteering.isGoingForward()){
+                                        goForward( camera );
+                                    }
 
 
                                 } else {
@@ -154,6 +162,7 @@ public class MainActivity extends AppCompatActivity
                         if (savedInstanceState == null) {
                             mStreetViewPanorama.setPosition(SYDNEY);
                         }
+
                         dvSteering.setOnTouchListener( new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
@@ -161,18 +170,16 @@ public class MainActivity extends AppCompatActivity
                                 StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(0,0,dvSteering.getBearig());
                                 panorama.animateTo( camera ,lDulation);
                                // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
-                                if(dvSteering.getBearig()>350||dvSteering.getBearig()<10){
-                                    StreetViewPanoramaLocation location = mStreetViewPanorama.getLocation();
-                                    camera = mStreetViewPanorama.getPanoramaCamera();
-                                    if (location != null && location.links != null) {
-                                        StreetViewPanoramaLink link = findClosestLinkToBearing(location.links, camera.bearing);
-                                        mStreetViewPanorama.setPosition(link.panoId);
-                                    }
+                                if(dvSteering.isGoingForward()){
+                                    goForward( camera );
                                 }
 
                                 return false;
                             }
+
                         } );
+
+
 
                     }
                 });
@@ -192,6 +199,15 @@ public class MainActivity extends AppCompatActivity
         });
         player=MediaPlayer.create( this,R.raw.po );
 
+    }
+
+    public void goForward(StreetViewPanoramaCamera camera){
+        StreetViewPanoramaLocation location = mStreetViewPanorama.getLocation();
+        camera = mStreetViewPanorama.getPanoramaCamera();
+        if (location != null && location.links != null) {
+            StreetViewPanoramaLink link = findClosestLinkToBearing(location.links, camera.bearing);
+            mStreetViewPanorama.setPosition(link.panoId);
+        }
     }
     public static StreetViewPanoramaLink findClosestLinkToBearing(StreetViewPanoramaLink[] links,
                                                                   float bearing) {
