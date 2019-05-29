@@ -1,6 +1,7 @@
 package com.shoon.drivinggooglemap;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,11 +9,17 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import java.util.Objects;
+
+import static java.util.Objects.*;
 
 public class TripLog extends Fragment {
 
     private TripLogViewModel mViewModel;
-
+    TextView tvTripLog;
+    View view;
     public static TripLog newInstance() {
         return new TripLog();
     }
@@ -20,7 +27,11 @@ public class TripLog extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate( R.layout.trip_log_fragment, container, false );
+        TripLogViewModel tripLog=ViewModelProviders.of(  getActivity() ) .get(TripLogViewModel.class);
+        view = inflater.inflate( R.layout.trip_log_fragment, container, false );
+
+
+        return view;
     }
 
     @Override
@@ -28,6 +39,19 @@ public class TripLog extends Fragment {
         super.onActivityCreated( savedInstanceState );
         mViewModel = ViewModelProviders.of( this ).get( TripLogViewModel.class );
         // TODO: Use the ViewModel
+
+
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+        tvTripLog=view.findViewById( R.id.textTripLog );
+        tvTripLog.setTextColor( Color.RED );
+        tvTripLog.append(  "test" );
+        tvTripLog.invalidate();
+        view.invalidate();
+    }
 }

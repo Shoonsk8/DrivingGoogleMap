@@ -6,8 +6,9 @@
     tools:context=".TripLog">
 
     <TextView
+        android:id="@+id/textTripLog"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Hello this is a fragment" />
+        android:text="                      Hello this is a fragment" />
 
 </FrameLayout>

@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.view.MotionEvent;
 import android.view.View;
@@ -53,6 +54,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -82,10 +84,12 @@ public class MainActivity extends AppCompatActivity
     MediaPlayer player;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mPermissionDenied = false;
-    private LatLng currentLocation;
+  //  private LatLng currentLocation;
     private TextView tvDebug;
     private LatLng markerPosition;
     int i=0;
+    private PositionLog positionLogCurrent;
+    private ArrayList<PositionLog> alPosition;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
@@ -115,11 +119,18 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
         drawer.addDrawerListener( toggle );
         toggle.syncState();
-        tvDebug=findViewById( R.id.textMonitor );
         navigationView.setNavigationItemSelectedListener( this );
         final DialView dvSteering=findViewById(R.id.dial_volume);
 
+        FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().replace( R.id.map_container, TripLog.newInstance(  ) );
+        transaction.commit();
 
+
+
+
+        positionLogCurrent=new PositionLog(0,0, SYDNEY,0 );
+        alPosition=new ArrayList<>( 1 );
+        alPosition.add( positionLogCurrent );
         if (savedInstanceState == null) {
             markerPosition = SYDNEY;
         } else {
@@ -130,6 +141,7 @@ public class MainActivity extends AppCompatActivity
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
                 (SupportStreetViewPanoramaFragment)
                         getSupportFragmentManager().findFragmentById(R.id.streetviewpanorama);
+
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(
                 new OnStreetViewPanoramaReadyCallback() {
 
@@ -142,23 +154,16 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
                                 if (streetViewPanoramaLocation != null && streetViewPanoramaLocation.links != null) {
-                                    tvDebug.setText( Integer.toString( i++ )+" ");
-                                    tvDebug.append(  panorama.getLocation().position.toString()+"\n" );
-                                    tvDebug.append( "camera="+ Float.toString( panorama.getPanoramaCamera().bearing) );
-                                    tvDebug.append( " steering="+Float.toString( dvSteering.getBearig())+"\n"  );
-                                    tvDebug.append( "steering angle="+Double.toString( dvSteering.getDegree() ));
-                                   // tvDebug.append(  panorama.pointToOrientation(  ) );
+                                    alPosition.add( new PositionLog(0,i,panorama.getLocation().position,panorama.getPanoramaCamera().bearing,panorama.getPanoramaCamera().tilt  ) );
+
+                                    // tvDebug.append(  panorama.pointToOrientation(  ) );
                                     long lDulation=1;
-                                    StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(0,0,dvSteering.getBearig());
+                                    StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
                                     panorama.animateTo( camera ,lDulation);
                                     // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
                                     if(dvSteering.isGoingForward()){
-                                        goForward( camera );
+                                        goForward(panorama);
                                     }
-                                    MainActivity.this.markerPosition=
-                                  new LatLng( panorama.getLocation().position.latitude,
-                                   panorama.getLocation().position.longitude);
-
                                 } else {
                                     // location not available
                                 }
@@ -166,29 +171,25 @@ public class MainActivity extends AppCompatActivity
 
                         });
                         if (savedInstanceState == null) {
-                            mStreetViewPanorama.setPosition(SYDNEY);
+                            mStreetViewPanorama.setPosition(positionLogCurrent.getLtln());
                         }
 
                         dvSteering.setOnTouchListener( new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
                                 long lDulation=10;
-                                StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(0,0,dvSteering.getBearig());
+                                StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
                                 panorama.animateTo( camera ,lDulation);
                                // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
                                 if(dvSteering.isGoingForward()){
-                                    goForward( camera );
+                                     goForward( panorama );
                                 }
-
                                 return false;
                             }
-
                         } );
-
-
-
                     }
                 });
+
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -202,16 +203,19 @@ public class MainActivity extends AppCompatActivity
                         .position(markerPosition)
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.pegman))
                         .draggable(true));
-                        player.start();
+                player.start();
             }
         });
 
         player=MediaPlayer.create( this,R.raw.po );
     }
 
-    public void goForward(StreetViewPanoramaCamera camera){
-        StreetViewPanoramaLocation location = mStreetViewPanorama.getLocation();
-        camera = mStreetViewPanorama.getPanoramaCamera();
+    public void goForward(StreetViewPanorama panorama){
+        positionLogCurrent=new PositionLog(0,i,panorama );
+        alPosition.add( positionLogCurrent );
+
+        StreetViewPanoramaLocation location = panorama.getLocation();
+        StreetViewPanoramaCamera camera = mStreetViewPanorama.getPanoramaCamera();
         if (location != null && location.links != null) {
             StreetViewPanoramaLink link = findClosestLinkToBearing(location.links, camera.bearing);
             mStreetViewPanorama.setPosition(link.panoId);
@@ -353,10 +357,10 @@ public class MainActivity extends AppCompatActivity
                 bPin=false;
                 break;
             case R.id.addPin:
-                if(currentLocation!=null){
+                if(positionLogCurrent!=null){
                     mMap.addMarker( new MarkerOptions()
-                            .position(currentLocation).title( "my location" )
-                            .snippet(currentLocation.toString()) );
+                            .position(positionLogCurrent.getLtln()).title( "my location" )
+                            .snippet(positionLogCurrent.getLtln().toString()) );
                     player.start();
                 }
 
@@ -417,18 +421,18 @@ public class MainActivity extends AppCompatActivity
                     .position(latLng).title( Integer.toString( iCounter++ ) )
                     .snippet( latLng.toString()) );
             player.start();
-            currentLocation=latLng;
+            positionLogCurrent.setLtln( latLng);
         }
 
     }
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
-        currentLocation=new LatLng( location.getLatitude(),location.getLongitude());
+        positionLogCurrent.setLtln( new LatLng( location.getLatitude(),location.getLongitude()));
 
         mMap.addMarker( new MarkerOptions()
-                .position(currentLocation).title(  "My location" )
-                .snippet(currentLocation.toString()) );
+                .position(positionLogCurrent.getLtln()).title(  "My location" )
+                .snippet(positionLogCurrent.getLtln().toString()) );
         player.start();
 
         //    Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
@@ -486,7 +490,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onMyLocationButtonClick() {
         CameraPosition position=mMap.getCameraPosition();
-        currentLocation=new LatLng( position.target.latitude,position.target.longitude);
+        positionLogCurrent.setLtln( new LatLng( position.target.latitude,position.target.longitude));
         return false;
     }
 }
