@@ -42,6 +42,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
+import com.google.android.gms.maps.model.StreetViewPanoramaLink;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 import com.google.android.gms.maps.model.StreetViewPanoramaOrientation;
 
@@ -156,13 +157,19 @@ public class MainActivity extends AppCompatActivity
                         dvSteering.setOnTouchListener( new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
-                                StreetViewPanoramaOrientation svpo=new StreetViewPanoramaOrientation(0,dvSteering.getBearig());
-                                tvDebug.setText( Float.toString( svpo.bearing)+","+Float.toString( svpo.tilt));
-                                tvDebug.append((panorama.orientationToPoint(svpo)).toString());
                                 long lDulation=10;
                                 StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(0,0,dvSteering.getBearig());
                                 panorama.animateTo( camera ,lDulation);
                                // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                                if(dvSteering.getBearig()>350||dvSteering.getBearig()<10){
+                                    StreetViewPanoramaLocation location = mStreetViewPanorama.getLocation();
+                                    camera = mStreetViewPanorama.getPanoramaCamera();
+                                    if (location != null && location.links != null) {
+                                        StreetViewPanoramaLink link = findClosestLinkToBearing(location.links, camera.bearing);
+                                        mStreetViewPanorama.setPosition(link.panoId);
+                                    }
+                                }
+
                                 return false;
                             }
                         } );
@@ -186,7 +193,24 @@ public class MainActivity extends AppCompatActivity
         player=MediaPlayer.create( this,R.raw.po );
 
     }
-
+    public static StreetViewPanoramaLink findClosestLinkToBearing(StreetViewPanoramaLink[] links,
+                                                                  float bearing) {
+        float minBearingDiff = 360;
+        StreetViewPanoramaLink closestLink = links[0];
+        for (StreetViewPanoramaLink link : links) {
+            if (minBearingDiff > findNormalizedDifference(bearing, link.bearing)) {
+                minBearingDiff = findNormalizedDifference(bearing, link.bearing);
+                closestLink = link;
+            }
+        }
+        return closestLink;
+    }
+    // Find the difference between angle a and b as a value between 0 and 180
+    public static float findNormalizedDifference(float a, float b) {
+        float diff = a - b;
+        float normalizedDiff = diff - (float) (360 * Math.floor(diff / 360.0f));
+        return (normalizedDiff < 180.0f) ? normalizedDiff : 360.0f - normalizedDiff;
+    }
 
 
     @Override
