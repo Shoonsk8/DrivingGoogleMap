@@ -376,8 +376,12 @@ public class DialView extends View {
                 invalidate();
                 return true;
               case MotionEvent.ACTION_UP:        // 指を離した    // (12)
-                  dDiscrepancyBearing=dTheta-dPI;
-                  dTheta=dPI;
+                  if(dTheta<dPI/2||dTheta>3*dPI/2){
+                      dDiscrepancyBearing=dTheta-dPI;
+
+                      dTheta=dPI;
+                  }
+
 
                   postInvalidateOnAnimation();
                 return false;
@@ -388,7 +392,7 @@ public class DialView extends View {
         }
     }
     public boolean isGoingForward(){
-        if(dTheta>3.1||dTheta<3.2)return true;
+        if(dTheta>3.1&&dTheta<3.2)return true;
         return false;
     }
 }
