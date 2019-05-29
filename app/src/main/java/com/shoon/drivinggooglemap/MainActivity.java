@@ -7,6 +7,7 @@ import android.location.Location;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -39,10 +40,14 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View.OnClickListener;
+import android.view.animation.AccelerateInterpolator;
+import android.widget.TextView;
 
 import java.io.IOException;
 
@@ -75,15 +80,25 @@ public class MainActivity extends AppCompatActivity
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mPermissionDenied = false;
     private LatLng currentLocation;
-
+    private TextView tvDebug;
+    int i=0;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
-        Toolbar toolbar = findViewById( R.id.toolbar );
+        final Toolbar toolbar = findViewById( R.id.toolbar );
         setSupportActionBar( toolbar );
-        FloatingActionButton fab = findViewById( R.id.fab );
-        fab.setOnClickListener( new View.OnClickListener() {
+        toolbar.setOnLongClickListener( new View.OnLongClickListener() {
+                                            @Override
+                                            public boolean onLongClick(View v) {
+                                                getSupportActionBar().hide();
+                                                return false;
+                                            }
+                                        });
+
+
+                FloatingActionButton fab = findViewById( R.id.fab );
+        fab.setOnClickListener( new OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make( view, "Replace with your own action", Snackbar.LENGTH_LONG )
@@ -104,22 +119,54 @@ public class MainActivity extends AppCompatActivity
         } else {
             markerPosition = savedInstanceState.getParcelable(MARKER_POSITION_KEY);
         }
-
+        final Handler handler=new Handler(  );
+        tvDebug=findViewById( R.id.textMonitor );
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
                 (SupportStreetViewPanoramaFragment)
                         getSupportFragmentManager().findFragmentById(R.id.streetviewpanorama);
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(
                 new OnStreetViewPanoramaReadyCallback() {
+
                     @Override
-                    public void onStreetViewPanoramaReady(StreetViewPanorama panorama) {
+                    public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
+                       /* panorama.setOnStreetViewPanoramaCameraChangeListener( new StreetViewPanorama.OnStreetViewPanoramaCameraChangeListener() {
+                            @Override
+                            public void onStreetViewPanoramaCameraChange(StreetViewPanoramaCamera streetViewPanoramaCamera) {
+                                if(panorama.getLocation()!=null){
+
+                                    double str= panorama.getLocation().position.latitude;
+
+                                }
+                            }
+                        } );*/
                         mStreetViewPanorama = panorama;
-                        mStreetViewPanorama.setOnStreetViewPanoramaChangeListener(
-                                MainActivity.this);
+
+                        mStreetViewPanorama.setOnStreetViewPanoramaChangeListener(new StreetViewPanorama.OnStreetViewPanoramaChangeListener() {
+                            @Override
+                            public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
+                                if (streetViewPanoramaLocation != null && streetViewPanoramaLocation.links != null) {
+                                    tvDebug.setText( panorama.getLocation().position.toString() );
+                                    // location is present
+                                } else {
+                                    // location not available
+                                }
+                            }
+                        });
                         // Only need to set the position once as the streetview fragment will maintain
                         // its state.
                         if (savedInstanceState == null) {
                             mStreetViewPanorama.setPosition(SYDNEY);
                         }
+                        handler.post( new Runnable() {
+                            @Override
+                            public void run() {
+
+
+
+                               //tvDebug.setText( "test");
+                            }
+                        } );
+
                     }
                 });
 
@@ -137,16 +184,25 @@ public class MainActivity extends AppCompatActivity
             }
         });
         player=MediaPlayer.create( this,R.raw.po );
+
     }
+
+
 
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = findViewById( R.id.drawer_layout );
+        if(!getSupportActionBar().isShowing()){
+            getSupportActionBar().show();
+            return;
+        }
+
         if (drawer.isDrawerOpen( GravityCompat.START )) {
             drawer.closeDrawer( GravityCompat.START );
         } else {
             super.onBackPressed();
         }
+
     }
 
 
@@ -287,7 +343,7 @@ public class MainActivity extends AppCompatActivity
         mMap.setOnMyLocationClickListener(this);
         enableMyLocation();
         UiSettings mUiSettings = mMap.getUiSettings();
-        mUiSettings.setMapToolbarEnabled(true);
+      //  mUiSettings.setMapToolbarEnabled(true);
         mUiSettings.setZoomControlsEnabled(true);
         mUiSettings.setScrollGesturesEnabled(true);
         mUiSettings.setZoomGesturesEnabled(true);

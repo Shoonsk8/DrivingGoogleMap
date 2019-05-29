@@ -25,7 +25,7 @@ public class DialView extends View {
     private float fX;    // 図形を描画する X 座標    // (1)
     private float fY;    // 図形を描画する Y 座標    // (2)
     private double dTheta;
-    private double dRotation=-60; //Degree of Dial starting point from horizontal line
+    private double dRotation=-90; //Degree of Dial starting point from horizontal line
     int iCenterX=500;
     int iCenterY=500;
     int iDialRadius;
@@ -212,9 +212,6 @@ public class DialView extends View {
             paintDot.setColor(Color.RED);    // (4)
             paintDot.setStyle(Style.FILL);    // (5)
 
-            // 丸を描画する初期値を設定する
-            fX = iCenterX;
-            fY = iCenterY-this.getiDotMovingRadius();
 
         }else{
             paintDial = new Paint();
@@ -229,15 +226,16 @@ public class DialView extends View {
             paintDot.setColor(Color.RED);    // (4)
             paintDot.setStyle(Style.FILL);    // (5)
 
-            // 丸を描画する初期値を設定する
-            fX = iCenterX;
-            fY = iCenterY-this.getiDotMovingRadius();
+
 
         }
         iWidthCanvas = display.getWidth();
         iHeightCanvas = display.getHeight();
         iCenterX=iWidthCanvas/2;
         iCenterY=iHeightCanvas-iDialRadius*2;
+        // 丸を描画する初期値を設定する
+        fX = iCenterX;
+        fY = iCenterY-this.getiDotMovingRadius();
     }
 
 
@@ -247,31 +245,28 @@ public class DialView extends View {
     //    drawGrid(canvas, 50);
 
         paintDial.setColor(Color.DKGRAY );
-        paintDial.setStyle( Style.FILL);
+        paintDial.setStyle( Style.STROKE);
         canvas.drawCircle(iCenterX, iCenterY+5, iDialRadius, paintDial);
         paintDial.setColor( Color.BLACK );
-        paintDial.setStyle( Style.FILL);
+        paintDial.setStyle( Style.STROKE);
         canvas.drawCircle(iCenterX, iCenterY, iDialRadius, paintDial);
-        paintDial.setStyle( Style.FILL);
+        paintDial.setStyle( Style.STROKE);
         paintDial.setColor(Color.DKGRAY );
 
         canvas.drawCircle(iCenterX, iCenterY-5, (int)(iDialRadius*0.8), paintDial);
-        paintDial.setStyle( Style.FILL);
+        paintDial.setStyle( Style.STROKE);
         paintDial.setColor(Color.LTGRAY );
         canvas.drawCircle(iCenterX, iCenterY, (int)(iDialRadius*0.75), paintDial);
         // 円を描画する
+        paintDial.setStyle( Style.FILL);
         canvas.drawCircle(fX, fY, iDotRaidus, paintDot);    // (6)
-  //debug purpose
-  /*
-        int iSizeText=50;
-        paintDot.setTextSize(iSizeText);
-        canvas.drawText("x="+Float.toString(fX),100,100,paintDot);
-        canvas.drawText("y="+Float.toString(fY),100,110+iSizeText,paintDot);
-        canvas.drawText("θ="+Double.toString(getDegree()),100,120+iSizeText*2,paintDot);
-        canvas.drawText("rate="+Double.toString(getPercent(dRotation)),100,130+iSizeText*3,paintDot);
-   */  }
+     }
 
-    public double getTheta(double dCos,double dSin,double dRotation){
+    public double getXRotated(){
+        return 0;
+    }
+
+     public double getTheta(double dCos,double dSin,double dRotation){
         dRotation=-Math.PI*dRotation/180;
 
         double dCosRotation=Math.cos(dRotation)
@@ -323,11 +318,17 @@ public class DialView extends View {
     }
     @Override
     public boolean onTouchEvent(MotionEvent event) {    // (7)
+        int x=(int)event.getX(),
+                y=(int)event.getY();
         switch (event.getAction()) {
 
-            case MotionEvent.ACTION_DOWN:    // 指をタッチした    // (8)
-                assert true;    // 何もしない
-                break;
+            case MotionEvent.ACTION_DOWN:
+                if(x>iCenterX-iDialRadius&&x<iCenterX+iDialRadius&&
+                        y>iCenterY-iDialRadius&&y<iCenterY+iDialRadius){
+                    return true;
+                }else{
+                    return false;
+                }
 
             case MotionEvent.ACTION_MOVE:    // 指を動かしている    // (9)
 
@@ -338,20 +339,32 @@ public class DialView extends View {
                 double dCos=dX/dC;
                 double dSin=dY/dC;
                 dTheta=getTheta(dCos,dSin,dRotation);
+                double dPi=Math.PI;
                 if(dSin>Math.sin(Math.toRadians(dRotation))) {
                     float fTX=-(float) (dCos * this.getiDotMovingRadius()) + iCenterX,
                           fTY=-(float) (dSin * this.getiDotMovingRadius()) + iCenterY;
                     //color chages depends on rate
-                    int p=getPercent(dRotation);
-                    if(p<25 ){
-                        paintDot.setColor(Color.BLUE);
-                    }else if(p>=25&&p<50){
+
+                    if(dTheta<dPi/8 ){//南
+                        paintDot.setColor(Color.BLACK);
+                    }else if(dTheta>=dPi/8&&dTheta<3*dPi/8){//南東
+                        paintDot.setColor(Color.CYAN);
+                    }else if(dTheta>=3*dPi/6&&dTheta<5*dPi/8){//西
+                         paintDot.setColor(Color.BLUE);
+                    }else  if(dTheta>=5*dPi/8&&dTheta<7*dPi/8){//北西
+                        paintDot.setColor(Color.WHITE);
+                    }else if(dTheta>=7*dPi/8.5&&dTheta<9*dPi/8){//北
                         paintDot.setColor(Color.GREEN);
-                    }else if(p>=50&&p<75){
+                    }else if(dTheta>=9*dPi/8&&dTheta<11*dPi/8){//北東
                         paintDot.setColor(Color.YELLOW);
-                    }else {
+                    }else if(dTheta>=11*dPi/8&&dTheta<13*dPi/8){//東
                         paintDot.setColor(Color.RED);
+                    }else if(dTheta>=13*dPi/8.5&&dTheta<15*dPi/8){//南東
+                        paintDot.setColor(Color.MAGENTA);
+                    }else  if(dTheta>=15*dPi/8&&dTheta<2*dPi){//南
+                        paintDot.setColor(Color.BLACK);
                     }
+
                     //prevents from skipping from min to max or from max to min
                     if(fTX>iCenterX&&fX>iCenterX){
                         fX=fTX;
@@ -366,20 +379,13 @@ public class DialView extends View {
 
                 }
                 invalidate();
-                break;
+                return true;
+              case MotionEvent.ACTION_UP:        // 指を離した    // (12)
+                return false;    // 何もしない
 
-            case MotionEvent.ACTION_UP:        // 指を離した    // (12)
-                assert true;    // 何もしない
-                break;
 
             default:
-                assert true;    // 何もしない
-                break;
+                return false;
         }
-
-
-        invalidate();    // (13)
-
-        return true;    // (14)
     }
 }
