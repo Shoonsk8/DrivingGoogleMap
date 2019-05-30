@@ -9,7 +9,20 @@ import com.google.android.gms.maps.model.LatLng;
 public class PositionLog implements Parcelable {
     private int iTripID;
     private int iSerialNumber;
-    private LatLng ltln;
+    private double dLatitude;
+
+    public PositionLog(int iTripID, int iSerialNumber, double dLatitude, double dLongitude, float fBearing, float fTilt, double dTimeStamp) {
+        this.iTripID = iTripID;
+        this.iSerialNumber = iSerialNumber;
+        this.dLatitude = dLatitude;
+        this.dLongitude = dLongitude;
+        this.fBearing = fBearing;
+        this.fTilt = fTilt;
+        this.dTimeStamp = dTimeStamp;
+    }
+
+    private double dLongitude;
+
     private float fBearing;
     private float fTilt;
     private double dTimeStamp;
@@ -17,7 +30,8 @@ public class PositionLog implements Parcelable {
     public PositionLog(int iTripID, int iSerialNumber,StreetViewPanorama panorama){
         this.iTripID = iTripID;
         this.iSerialNumber = iSerialNumber;
-        this.ltln = panorama.getLocation().position;
+        this.dLatitude = panorama.getLocation().position.latitude;;
+        this.dLongitude = panorama.getLocation().position.longitude;
         this.fBearing = panorama.getPanoramaCamera().bearing;
         this.fTilt = panorama.getPanoramaCamera().tilt;
         this.dTimeStamp = dTimeStamp;
@@ -27,7 +41,8 @@ public class PositionLog implements Parcelable {
     public PositionLog(int iTripID, int iSerialNumber, LatLng ltln, float fBearing, float fTilt, double dTimeStamp) {
         this.iTripID = iTripID;
         this.iSerialNumber = iSerialNumber;
-        this.ltln = ltln;
+        this.dLatitude = ltln.latitude;;
+        this.dLongitude = ltln.longitude;
         this.fBearing = fBearing;
         this.fTilt = fTilt;
         this.dTimeStamp = dTimeStamp;
@@ -35,25 +50,55 @@ public class PositionLog implements Parcelable {
     public PositionLog(int iTripID, int iSerialNumber, LatLng ltln, float fBearing, float fTilt) {
         this.iTripID = iTripID;
         this.iSerialNumber = iSerialNumber;
-        this.ltln = ltln;
+        this.dLatitude = ltln.latitude;;
+        this.dLongitude = ltln.longitude;
         this.fBearing = fBearing;
         this.fTilt = fTilt;
         this.dTimeStamp = System.currentTimeMillis();
     }
 
+    public LatLng getdLatLng() {
+        LatLng latLng=new LatLng( dLatitude, dLongitude);
+        return latLng;
+    }
+
+    public void setLatLng(LatLng latLng) {
+        this.dLatitude = latLng.latitude;
+        this.dLongitude = latLng.longitude;
+    }
+
+    public double getdLatitude() {
+        return dLatitude;
+    }
+
+    public void setdLatitude(double dLatitude) {
+        this.dLatitude = dLatitude;
+    }
+
+    public double getdLongitude() {
+        return dLongitude;
+    }
+
+    public void setdLongitude(double dLongitude) {
+        this.dLongitude = dLongitude;
+    }
+
     public PositionLog(int iTripID, int iSerialNumber, LatLng ltln, float fBearing) {
         this.iTripID = iTripID;
         this.iSerialNumber = iSerialNumber;
-        this.ltln = ltln;
+        this.dLatitude = ltln.latitude;;
+        this.dLongitude = ltln.longitude;
         this.fBearing = fBearing;
         this.fTilt =0;
         this.dTimeStamp = System.currentTimeMillis();
     }
 
+
     protected PositionLog(Parcel in) {
         iTripID = in.readInt();
         iSerialNumber = in.readInt();
-        ltln = in.readParcelable( LatLng.class.getClassLoader() );
+        dLatitude = in.readDouble();
+        dLongitude = in.readDouble();
         fBearing = in.readFloat();
         fTilt = in.readFloat();
         dTimeStamp = in.readDouble();
@@ -87,13 +132,6 @@ public class PositionLog implements Parcelable {
         this.iSerialNumber = iSerialNumber;
     }
 
-    public LatLng getLtln() {
-        return ltln;
-    }
-
-    public void setLtln(LatLng ltln) {
-        this.ltln = ltln;
-    }
 
     public float getfBearing() {
         return fBearing;
@@ -119,6 +157,7 @@ public class PositionLog implements Parcelable {
         this.dTimeStamp = dTimeStamp;
     }
 
+
     @Override
     public int describeContents() {
         return 0;
@@ -128,7 +167,8 @@ public class PositionLog implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt( iTripID );
         dest.writeInt( iSerialNumber );
-        dest.writeParcelable( ltln, flags );
+        dest.writeDouble( dLatitude );
+        dest.writeDouble( dLongitude );
         dest.writeFloat( fBearing );
         dest.writeFloat( fTilt );
         dest.writeDouble( dTimeStamp );

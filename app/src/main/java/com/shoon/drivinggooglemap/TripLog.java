@@ -1,6 +1,8 @@
 package com.shoon.drivinggooglemap;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,8 +20,9 @@ import static java.util.Objects.*;
 public class TripLog extends Fragment {
 
     private TripLogViewModel mViewModel;
-    TextView tvTripLog;
-    View view;
+    private TextView tvTripLog;
+    private View view;
+    private PositionLog positionLog;
     public static TripLog newInstance() {
         return new TripLog();
     }
@@ -29,7 +32,15 @@ public class TripLog extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         TripLogViewModel tripLog=ViewModelProviders.of(  getActivity() ) .get(TripLogViewModel.class);
         view = inflater.inflate( R.layout.trip_log_fragment, container, false );
+        tvTripLog=view.findViewById( R.id.textTripLog );
+        tvTripLog.setTextColor( Color.RED );
 
+        Bundle bundle=getArguments();
+        if (bundle != null) {
+           positionLog  = bundle.getParcelable("data_of_position");
+            tvTripLog.setText(  Integer.toString( positionLog.getiSerialNumber())+" ");
+            tvTripLog.append( positionLog.getdLatLng().toString());
+        }
 
         return view;
     }
@@ -43,15 +54,5 @@ public class TripLog extends Fragment {
 
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
 
-
-        tvTripLog=view.findViewById( R.id.textTripLog );
-        tvTripLog.setTextColor( Color.RED );
-        tvTripLog.append(  "test" );
-        tvTripLog.invalidate();
-        view.invalidate();
-    }
 }

@@ -1,6 +1,7 @@
 package com.shoon.drivinggooglemap;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -13,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.view.MotionEvent;
@@ -51,6 +53,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View.OnClickListener;
 import android.view.animation.AccelerateInterpolator;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -68,7 +71,7 @@ public class MainActivity extends AppCompatActivity
 
         ActivityCompat.OnRequestPermissionsResultCallback,
         OnStreetViewPanoramaChangeListener{
-
+    private Context context;
     private static final String MARKER_POSITION_KEY = "MarkerPosition";
 
     // George St, Sydney
@@ -89,11 +92,14 @@ public class MainActivity extends AppCompatActivity
     private LatLng markerPosition;
     int i=0;
     private PositionLog positionLogCurrent;
-    private ArrayList<PositionLog> alPosition;
+    private Bundle bundle;
+    private TripLog tripLog;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
+        context=getApplicationContext();
         final Toolbar toolbar = findViewById( R.id.toolbar );
         setSupportActionBar( toolbar );
         toolbar.setOnLongClickListener( new View.OnLongClickListener() {
@@ -122,15 +128,16 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener( this );
         final DialView dvSteering=findViewById(R.id.dial_volume);
 
-        FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().replace( R.id.map_container, TripLog.newInstance(  ) );
+        positionLogCurrent=new PositionLog(0,0, SYDNEY,0 );
+        tripLog=new TripLog();
+        bundle = new Bundle();
+        bundle.putParcelable("data_of_position", positionLogCurrent);
+        tripLog.setArguments(bundle);
+
+        FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().replace( R.id.map_container, tripLog );
+        transaction.addToBackStack( null );
         transaction.commit();
 
-
-
-
-        positionLogCurrent=new PositionLog(0,0, SYDNEY,0 );
-        alPosition=new ArrayList<>( 1 );
-        alPosition.add( positionLogCurrent );
         if (savedInstanceState == null) {
             markerPosition = SYDNEY;
         } else {
@@ -154,8 +161,6 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
                                 if (streetViewPanoramaLocation != null && streetViewPanoramaLocation.links != null) {
-                                    alPosition.add( new PositionLog(0,i,panorama.getLocation().position,panorama.getPanoramaCamera().bearing,panorama.getPanoramaCamera().tilt  ) );
-
                                     // tvDebug.append(  panorama.pointToOrientation(  ) );
                                     long lDulation=1;
                                     StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
@@ -171,7 +176,7 @@ public class MainActivity extends AppCompatActivity
 
                         });
                         if (savedInstanceState == null) {
-                            mStreetViewPanorama.setPosition(positionLogCurrent.getLtln());
+                            mStreetViewPanorama.setPosition(positionLogCurrent.getdLatLng());
                         }
 
                         dvSteering.setOnTouchListener( new View.OnTouchListener() {
@@ -211,14 +216,22 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void goForward(StreetViewPanorama panorama){
-        positionLogCurrent=new PositionLog(0,i,panorama );
-        alPosition.add( positionLogCurrent );
+        positionLogCurrent=new PositionLog(0,i++,panorama );
+   /*     tripLog=new TripLog();
+        bundle = new Bundle();
+        bundle.putParcelable("data_of_position", positionLogCurrent);
+        tripLog.setArguments(bundle);
+
+        FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().replace( R.id.map_container, tripLog );
+        transaction.addToBackStack( null );
+        transaction.commit();*/
 
         StreetViewPanoramaLocation location = panorama.getLocation();
         StreetViewPanoramaCamera camera = mStreetViewPanorama.getPanoramaCamera();
         if (location != null && location.links != null) {
             StreetViewPanoramaLink link = findClosestLinkToBearing(location.links, camera.bearing);
             mStreetViewPanorama.setPosition(link.panoId);
+
         }
     }
     public static StreetViewPanoramaLink findClosestLinkToBearing(StreetViewPanoramaLink[] links,
@@ -359,8 +372,8 @@ public class MainActivity extends AppCompatActivity
             case R.id.addPin:
                 if(positionLogCurrent!=null){
                     mMap.addMarker( new MarkerOptions()
-                            .position(positionLogCurrent.getLtln()).title( "my location" )
-                            .snippet(positionLogCurrent.getLtln().toString()) );
+                            .position(positionLogCurrent.getdLatLng()).title( "my location" )
+                            .snippet(positionLogCurrent.getdLatLng().toString()) );
                     player.start();
                 }
 
@@ -421,18 +434,18 @@ public class MainActivity extends AppCompatActivity
                     .position(latLng).title( Integer.toString( iCounter++ ) )
                     .snippet( latLng.toString()) );
             player.start();
-            positionLogCurrent.setLtln( latLng);
+            positionLogCurrent.setLatLng( latLng);
         }
 
     }
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
-        positionLogCurrent.setLtln( new LatLng( location.getLatitude(),location.getLongitude()));
+        positionLogCurrent.setLatLng( new LatLng( location.getLatitude(),location.getLongitude()));
 
         mMap.addMarker( new MarkerOptions()
-                .position(positionLogCurrent.getLtln()).title(  "My location" )
-                .snippet(positionLogCurrent.getLtln().toString()) );
+                .position(positionLogCurrent.getdLatLng()).title(  "My location" )
+                .snippet(positionLogCurrent.getdLatLng().toString()) );
         player.start();
 
         //    Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
@@ -490,7 +503,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onMyLocationButtonClick() {
         CameraPosition position=mMap.getCameraPosition();
-        positionLogCurrent.setLtln( new LatLng( position.target.latitude,position.target.longitude));
+        positionLogCurrent.setLatLng( new LatLng( position.target.latitude,position.target.longitude));
         return false;
     }
 }
