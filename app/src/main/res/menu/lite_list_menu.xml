@@ -19,19 +19,19 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/enablePin"
-        android:title="Allow adding Pin"
+        android:id="@+id/locationSydney"
+        android:title="Sydney"
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/disablePin"
-        android:title="Prohibit adding pin"
+        android:id="@+id/loncationIndy"
+        android:title="Indianapolis"
         app:showAsAction="never" />
 
 
     <item
-        android:id="@+id/addPin"
-        android:title="Add pin on current location"
+        android:id="@+id/locationCurrent"
+        android:title="Curent Location"
         app:showAsAction="never" />
 
 </menu>

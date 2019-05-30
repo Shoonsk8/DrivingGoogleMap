@@ -36,6 +36,15 @@ public class PositionLog implements Parcelable {
         this.fTilt = panorama.getPanoramaCamera().tilt;
         this.dTimeStamp = dTimeStamp;
     }
+    public PositionLog(int iTripID, int iSerialNumber,LatLng latLng){
+        this.iTripID = iTripID;
+        this.iSerialNumber = iSerialNumber;
+        this.dLatitude = latLng.latitude;;
+        this.dLongitude = latLng.longitude;
+        this.fBearing = 0;
+        this.fTilt = 0;
+        this.dTimeStamp = dTimeStamp;
+    }
 
 
     public PositionLog(int iTripID, int iSerialNumber, LatLng ltln, float fBearing, float fTilt, double dTimeStamp) {

@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
 import com.google.android.gms.maps.model.StreetViewPanoramaLink;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 import com.google.android.gms.maps.model.StreetViewPanoramaOrientation;
+import com.shoon.drivinggooglemap.SQL.TripLogSQLDAO;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -76,7 +77,8 @@ public class MainActivity extends AppCompatActivity
 
     // George St, Sydney
     private static final LatLng SYDNEY = new LatLng(-33.87365, 151.20689);
-
+    private static final LatLng INDY = new LatLng(39.85183, -86.106064);
+    private static LatLng initialLocation=INDY;
     private StreetViewPanorama mStreetViewPanorama;
 
     private Marker mMarker;
@@ -94,12 +96,15 @@ public class MainActivity extends AppCompatActivity
     private PositionLog positionLogCurrent;
     private Bundle bundle;
     private TripLog tripLog;
+    private boolean bStop=false;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
         context=getApplicationContext();
+        TripLogRepository tripLogRepository=new TripLogRepository(  context );
+
         final Toolbar toolbar = findViewById( R.id.toolbar );
         setSupportActionBar( toolbar );
         toolbar.setOnLongClickListener( new View.OnLongClickListener() {
@@ -111,12 +116,24 @@ public class MainActivity extends AppCompatActivity
                                         });
 
 
-                FloatingActionButton fab = findViewById( R.id.fab );
+        final FloatingActionButton fab = findViewById( R.id.fab );
+
         fab.setOnClickListener( new OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make( view, "Replace with your own action", Snackbar.LENGTH_LONG )
-                        .setAction( "Action", null ).show();
+                if(bStop){
+                    bStop=false;
+                    fab.setImageResource(  R.drawable.ic_palm );
+
+                    Snackbar.make( view, "Tap the steering wheel. Let's go!", Snackbar.LENGTH_LONG )
+                            .setAction( "Action", null ).show();
+                }else{
+                    bStop=true;
+                    fab.setImageResource(  R.drawable.ic_running );
+                    Snackbar.make( view, "Holding!", Snackbar.LENGTH_LONG )
+                            .setAction( "Action", null ).show();
+                }
+
             }
         } );
         DrawerLayout drawer = findViewById( R.id.drawer_layout );
@@ -128,7 +145,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener( this );
         final DialView dvSteering=findViewById(R.id.dial_volume);
 
-        positionLogCurrent=new PositionLog(0,0, SYDNEY,0 );
+        positionLogCurrent=new PositionLog(0,0, initialLocation,0 );
         tripLog=new TripLog();
         bundle = new Bundle();
         bundle.putParcelable("data_of_position", positionLogCurrent);
@@ -139,7 +156,7 @@ public class MainActivity extends AppCompatActivity
         transaction.commit();
 
         if (savedInstanceState == null) {
-            markerPosition = SYDNEY;
+            markerPosition = initialLocation;
         } else {
             markerPosition = savedInstanceState.getParcelable(MARKER_POSITION_KEY);
         }
@@ -206,7 +223,7 @@ public class MainActivity extends AppCompatActivity
                 // Creates a draggable marker. Long press to drag.
                 mMarker = map.addMarker(new MarkerOptions()
                         .position(markerPosition)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pegman))
+                        .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
                         .draggable(true));
                 player.start();
             }
@@ -216,6 +233,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void goForward(StreetViewPanorama panorama){
+        if(bStop)return;
         positionLogCurrent=new PositionLog(0,i++,panorama );
    /*     tripLog=new TripLog();
         bundle = new Bundle();
@@ -363,19 +381,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.enablePin:
-                bPin=true;
+            case R.id.loncationIndy:
+                initialLocation=INDY;
                 break;
-            case R.id.disablePin:
-                bPin=false;
+            case R.id.locationCurrent:
+                initialLocation=SYDNEY;
                 break;
-            case R.id.addPin:
-                if(positionLogCurrent!=null){
-                    mMap.addMarker( new MarkerOptions()
-                            .position(positionLogCurrent.getdLatLng()).title( "my location" )
-                            .snippet(positionLogCurrent.getdLatLng().toString()) );
-                    player.start();
-                }
+            case R.id.locationSydney:
+                initialLocation=SYDNEY;
 
                 break;
         }
@@ -383,16 +396,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -400,9 +403,8 @@ public class MainActivity extends AppCompatActivity
         mMap.setOnMapLongClickListener(this);
         mMap.setOnCameraIdleListener(this);
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng( -34, 151 );
-        mMap.addMarker( new MarkerOptions().position( sydney ).title( "Marker in Sydney" ) );
-        mMap.moveCamera( CameraUpdateFactory.newLatLng( sydney ) );
+        mMap.addMarker( new MarkerOptions().position( initialLocation ).title( "Here I am" ) );
+        mMap.moveCamera( CameraUpdateFactory.newLatLng( initialLocation) );
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);

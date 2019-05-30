@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.shoon.drivinggooglemap.PositionLog;
 
 import java.util.ArrayList;
@@ -12,17 +13,21 @@ import java.util.ArrayList;
 
 public class TripLogSQLDAO {
     private static SQLiteDatabase db;
+    static PositionLog positionLogTemp;
+    private static final LatLng INDY = new LatLng(39.85183, -86.106064);
 
     public static void initializeInstance(Context context) {
         if (db == null) {
             TripLogSQLHelper helper = new TripLogSQLHelper( context);
             db = helper.getWritableDatabase();
+            positionLogTemp=new PositionLog(0,0, INDY );
         }
     }
 
     public TripLogSQLDAO(Context context) {
         TripLogSQLHelper dbHelper=new TripLogSQLHelper( context );
         db=dbHelper.getWritableDatabase();
+
 
     }
     public TripLogSQLDAO(SQLiteDatabase db) {
@@ -61,10 +66,13 @@ public class TripLogSQLDAO {
     }
 
     public static PositionLog  readAPositionLogs(int iID, int iSequene){
-        final Cursor cursor = db.rawQuery("SELECT * FROM " + TripLogSQLContract.TripLogSQL.TABLE_NAME +
+        if (iID==-1) return positionLogTemp;
+
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TripLogSQLContract.TripLogSQL.TABLE_NAME +
                         "WHERE "+TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID+ "="+iID+" AND "+
                         TripLogSQLContract.TripLogSQL.COLUMN_NAME_SERIALNUMBER+"="+iSequene,
                 new String[]{});
+        if (cursor==null)return positionLogTemp;
         PositionLog  pl=getPositionLogFromCursor( cursor);
         cursor.close();
         return pl;

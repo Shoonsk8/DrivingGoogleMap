@@ -25,9 +25,6 @@
             android:layout_weight="0.7"
 
             class="com.google.android.gms.maps.SupportMapFragment"
-            map:cameraTargetLat="-33.87365"
-            map:cameraTargetLng="151.20689"
-            map:cameraZoom="15"
             />
         <fragment
             android:id="@+id/streetviewpanorama"
