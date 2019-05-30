@@ -34,6 +34,7 @@ public class DialView extends View {
     int iHeightCanvas;
     private String strDirection="N";
     private float fBearing;
+    private float fBearingLink;
     Context context;
 
 
@@ -260,12 +261,14 @@ public class DialView extends View {
         // 円を描画する
         paintDial.setStyle( Style.FILL);
         float fTheta= (float) (dTheta+Math.PI/2);
+        paintDot.setStyle( Style.FILL );
         fX= (float) (Math.cos(fTheta) *iDotMovingRadius+iCenterX);
         fY= (float) (Math.sin(fTheta) *iDotMovingRadius+iCenterY);
         canvas.drawCircle(fX, fY, iDotRaidus, paintDot);    // (6)
         paintDot.setTextSize(50);
         canvas.drawText(strDirection,iCenterX-25,iCenterY+25,paintDot );
-         fTheta= (float) (dDiscrepancyBearing);
+         fTheta= (float)(fBearing-dPI/2);
+         paintDot.setStyle( Style.STROKE );
         fX= (float) (Math.cos(fTheta) *iDotMovingRadius+iCenterX);
         fY= (float) (Math.sin(fTheta) *iDotMovingRadius+iCenterY);
         canvas.drawCircle(fX, fY, iDotRaidus, paintDot);    // (6)
@@ -342,6 +345,9 @@ public class DialView extends View {
             case MotionEvent.ACTION_DOWN:
                 if(x>iCenterX-iDialRadius&&x<iCenterX+iDialRadius&&
                         y>iCenterY-iDialRadius&&y<iCenterY+iDialRadius){
+          /*          fBearing=fBearingLink;
+                    dDiscrepancyBearing=dTheta-dPI;
+                    dTheta=dPI;*/
                     return true;
                 }else{
                     return false;
@@ -438,8 +444,8 @@ public class DialView extends View {
         return fBearing;
     }
 
-    public void setBearing(float fDegreeBearing){
-        this.fBearing=(float)dPI*fDegreeBearing/180;
+    public void setfBearingLink(float fDegreeBearing){
+        this.fBearingLink=(float)dPI*fDegreeBearing/180;
         dDiscrepancyBearing=fBearing-dTheta+dPI;
         dTheta=dPI;
         if(fBearing<dPI/8 ){

@@ -19,7 +19,7 @@
 
 
         <fragment
-            android:id="@+id/map"
+            android:id="@+id/upper"
             android:layout_width="match_parent"
             android:layout_height="0dp"
 
@@ -27,10 +27,10 @@
             class="com.google.android.gms.maps.SupportMapFragment"
             />
         <fragment
-            android:id="@+id/streetviewpanorama"
+            android:id="@+id/loweer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/map"
+            android:layout_below="@+id/upper"
             class="com.google.android.gms.maps.SupportStreetViewPanoramaFragment" />
 
         <com.shoon.drivinggooglemap.DialView
@@ -38,7 +38,7 @@
             app:dot_radius="10"
             app:dial_radius="200"
             app:dial_color="@android:color/darker_gray"
-            android:layout_alignBaseline="@+id/streetviewpanorama"
+            android:layout_alignBaseline="@+id/lower"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </RelativeLayout>
