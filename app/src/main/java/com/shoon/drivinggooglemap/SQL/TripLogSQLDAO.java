@@ -60,6 +60,16 @@ public class TripLogSQLDAO {
         return ml;
     }
 
+    public static PositionLog  readAPositionLogs(int iID, int iSequene){
+        final Cursor cursor = db.rawQuery("SELECT * FROM " + TripLogSQLContract.TripLogSQL.TABLE_NAME +
+                        "WHERE "+TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID+ "="+iID+" AND "+
+                        TripLogSQLContract.TripLogSQL.COLUMN_NAME_SERIALNUMBER+"="+iSequene,
+                new String[]{});
+        PositionLog  pl=getPositionLogFromCursor( cursor);
+        cursor.close();
+        return pl;
+    }
+
     public static void add(PositionLog PositionLog){
         ContentValues values = getContentValues(PositionLog);
 
