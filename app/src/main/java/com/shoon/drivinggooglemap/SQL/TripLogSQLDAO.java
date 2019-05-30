@@ -69,7 +69,7 @@ public class TripLogSQLDAO {
         if (iID==-1) return positionLogTemp;
 
         Cursor cursor = db.rawQuery("SELECT * FROM " + TripLogSQLContract.TripLogSQL.TABLE_NAME +
-                        "WHERE "+TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID+ "="+iID+" AND "+
+                        "WHERE "+TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID+"="+iID+" AND "+
                         TripLogSQLContract.TripLogSQL.COLUMN_NAME_SERIALNUMBER+"="+iSequene,
                 new String[]{});
         if (cursor==null)return positionLogTemp;
@@ -110,6 +110,7 @@ public class TripLogSQLDAO {
     private static ContentValues getContentValues(PositionLog PositionLog) {
         ContentValues values = new ContentValues();
         values.put(TripLogSQLContract.TripLogSQL._ID, PositionLog.getiTripID());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID, PositionLog.getiTripID());
         values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_SERIALNUMBER, PositionLog.getiSerialNumber());
         values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_LATITUDE, PositionLog.getdLatitude());
         values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_LOGITUDE, PositionLog.getdLongitude());
@@ -123,9 +124,11 @@ public class TripLogSQLDAO {
         int index = cursor.getColumnIndexOrThrow( TripLogSQLContract.TripLogSQL._ID);
         int id    = cursor.getInt(index);
 
+        index = cursor.getColumnIndexOrThrow(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID);
+        int iID    = cursor.getInt(index);
+
         index = cursor.getColumnIndexOrThrow(TripLogSQLContract.TripLogSQL.COLUMN_NAME_SERIALNUMBER);
         int iserial    = cursor.getInt(index);
-        String strTitle = cursor.getString(index);
 
         index = cursor.getColumnIndexOrThrow(TripLogSQLContract.TripLogSQL.COLUMN_NAME_LATITUDE);
         double dLatitude = cursor.getDouble( index);
@@ -144,7 +147,7 @@ public class TripLogSQLDAO {
         double dTimeStamp = cursor.getDouble( index);
 
 
-        return new PositionLog( id, iserial,dLatitude,dLongitude,fBearing, fTilt, dTimeStamp);
+        return new PositionLog( iID, iserial,dLatitude,dLongitude,fBearing, fTilt, dTimeStamp);
     }
 
 

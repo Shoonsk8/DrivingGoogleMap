@@ -32,7 +32,8 @@ public class DialView extends View {
     int iDotRaidus;// Radius of a dot
     int iWidthCanvas ;
     int iHeightCanvas;
-
+    private String strDirection="N";
+    private float fBearing;
     Context context;
 
 
@@ -262,6 +263,12 @@ public class DialView extends View {
         fX= (float) (Math.cos(fTheta) *iDotMovingRadius+iCenterX);
         fY= (float) (Math.sin(fTheta) *iDotMovingRadius+iCenterY);
         canvas.drawCircle(fX, fY, iDotRaidus, paintDot);    // (6)
+        paintDot.setTextSize(50);
+        canvas.drawText(strDirection,iCenterX-25,iCenterY+25,paintDot );
+         fTheta= (float) (dDiscrepancyBearing);
+        fX= (float) (Math.cos(fTheta) *iDotMovingRadius+iCenterX);
+        fY= (float) (Math.sin(fTheta) *iDotMovingRadius+iCenterY);
+        canvas.drawCircle(fX, fY, iDotRaidus, paintDot);    // (6)
      }
 
     public double getXRotated(){
@@ -324,6 +331,8 @@ public class DialView extends View {
     public String getValues(){
         return Float.toString(fX)+","+Float.toString(fY);
     }
+
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {    // (7)
         int x=(int)event.getX(),
@@ -354,24 +363,55 @@ public class DialView extends View {
                     //color chages depends on rate
 
                     if(dTheta<dPI/8 ){//南
+
                         paintDot.setColor(Color.BLACK);
                     }else if(dTheta>=dPI/8&&dTheta<3*dPI/8){//南東
+
                         paintDot.setColor(Color.CYAN);
                     }else if(dTheta>=3*dPI/6&&dTheta<5*dPI/8){//西
+
                          paintDot.setColor(Color.BLUE);
                     }else  if(dTheta>=5*dPI/8&&dTheta<7*dPI/8){//北西
+
                         paintDot.setColor(Color.WHITE);
                     }else if(dTheta>=7*dPI/8.5&&dTheta<9*dPI/8){//北
+
                         paintDot.setColor(Color.GREEN);
                     }else if(dTheta>=9*dPI/8&&dTheta<11*dPI/8){//北東
+
                         paintDot.setColor(Color.YELLOW);
                     }else if(dTheta>=11*dPI/8&&dTheta<13*dPI/8){//東
+
                         paintDot.setColor(Color.RED);
                     }else if(dTheta>=13*dPI/8.5&&dTheta<15*dPI/8){//南東
+
                         paintDot.setColor(Color.MAGENTA);
                     }else  if(dTheta>=15*dPI/8&&dTheta<2*dPI){//南
+
                         paintDot.setColor(Color.BLACK);
                     }
+                }
+                fBearing=getfBearing(dTheta,dDiscrepancyBearing);
+
+                if(fBearing<dPI/8 ){//南
+                    strDirection="N";
+                }else if(fBearing>=dPI/8&&fBearing<3*dPI/8){
+                    strDirection="NE";
+                }else if(fBearing>=3*dPI/6&&fBearing<5*dPI/8){
+                    strDirection="E";
+                }else  if(fBearing>=5*dPI/8&&fBearing<7*dPI/8){
+                    strDirection="SE";
+                }else if(fBearing>=7*dPI/8.5&&fBearing<9*dPI/8){
+                    strDirection="S";
+                }else if(fBearing>=9*dPI/8&&fBearing<11*dPI/8){
+                    strDirection="SW";
+                }else if(fBearing>=11*dPI/8&&fBearing<13*dPI/8){
+                    strDirection="W";
+                }else if(fBearing>=13*dPI/8.5&&fBearing<15*dPI/8){
+                    strDirection="NW";
+                }else  if(fBearing>=15*dPI/8&&fBearing<2*dPI){
+
+                    strDirection="N";
                 }
                 invalidate();
                 return true;
@@ -391,8 +431,41 @@ public class DialView extends View {
                 return false;
         }
     }
+
+    public float getfBearing(double dTheta,double dDiscrepancyBearing){
+        fBearing=(float)(dTheta-dPI+dDiscrepancyBearing);
+        if(fBearing<0)fBearing=(float)(fBearing+2*dPI);
+        return fBearing;
+    }
+
+    public void setBearing(float fDegreeBearing){
+        this.fBearing=(float)dPI*fDegreeBearing/180;
+        dDiscrepancyBearing=fBearing-dTheta+dPI;
+        dTheta=dPI;
+        if(fBearing<dPI/8 ){
+            strDirection="N";
+        }else if(fBearing>=dPI/8&&fBearing<3*dPI/8){
+            strDirection="NE";
+        }else if(fBearing>=3*dPI/6&&fBearing<5*dPI/8){
+            strDirection="E";
+        }else  if(fBearing>=5*dPI/8&&fBearing<7*dPI/8){
+            strDirection="SE";
+        }else if(fBearing>=7*dPI/8.5&&fBearing<9*dPI/8){
+            strDirection="S";
+        }else if(fBearing>=9*dPI/8&&fBearing<11*dPI/8){
+            strDirection="SW";
+        }else if(fBearing>=11*dPI/8&&fBearing<13*dPI/8){
+            strDirection="W";
+        }else if(fBearing>=13*dPI/8.5&&fBearing<15*dPI/8){
+            strDirection="NW";
+        }else  if(fBearing>=15*dPI/8&&fBearing<2*dPI){
+
+            strDirection="N";
+        }
+
+    }
     public boolean isGoingForward(){
-        if(dTheta>2*dPI/3&&dTheta<4*dPI/3)return true;
+        if(dTheta>3*dPI/4&&dTheta<5*dPI/4)return true;
         return false;
     }
 }

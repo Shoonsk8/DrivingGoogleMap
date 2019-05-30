@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/map_container"
+    tools:context=".MainActivity"
+    tools:showIn="@layout/app_bar_main">
+
+    <RelativeLayout
+        android:id="@+id/map_container2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.5"
+        android:orientation="vertical">
+
+
+        <fragment
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+
+
+            class="com.google.android.gms.maps.SupportMapFragment"
+            />
+        <fragment
+            android:id="@+id/streetviewpanorama"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/map"
+            class="com.google.android.gms.maps.SupportStreetViewPanoramaFragment" />
+
+        <com.shoon.drivinggooglemap.DialView
+            android:id="@+id/dial_volume"
+            app:dot_radius="10"
+            app:dial_radius="200"
+            app:dial_color="@android:color/darker_gray"
+            android:layout_alignBaseline="@+id/streetviewpanorama"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </RelativeLayout>
+
+</android.support.constraint.ConstraintLayout>

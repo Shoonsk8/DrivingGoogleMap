@@ -9,8 +9,8 @@ import android.support.annotation.RequiresApi;
 
 
 public class TripLogSQLHelper extends SQLiteOpenHelper {
-    private static final int    DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME    = "FavoriteMovieSQL.db";
+    private static final int    DATABASE_VERSION = 2;
+    private static final String DATABASE_NAME    = "TripLogSQL.db";
 
     public TripLogSQLHelper(Context context) {
         super( context, DATABASE_NAME,null,DATABASE_VERSION );

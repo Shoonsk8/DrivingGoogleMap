@@ -3,6 +3,7 @@ package com.shoon.drivinggooglemap;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.MediaPlayer;
@@ -96,22 +97,25 @@ public class MainActivity extends AppCompatActivity
     private PositionLog positionLogCurrent;
     private Bundle bundle;
     private TripLog tripLog;
-    private boolean bStop=false;
-
+    private boolean bStop=true;
+    private DialView dvSteering;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
         context=getApplicationContext();
         TripLogRepository tripLogRepository=new TripLogRepository(  context );
+        dvSteering=findViewById(R.id.dial_volume);
+
 
         final Toolbar toolbar = findViewById( R.id.toolbar );
         setSupportActionBar( toolbar );
         toolbar.setOnLongClickListener( new View.OnLongClickListener() {
                                             @Override
                                             public boolean onLongClick(View v) {
-                                                getSupportActionBar().hide();
+
                                                 return false;
+
                                             }
                                         });
 
@@ -127,8 +131,10 @@ public class MainActivity extends AppCompatActivity
 
                     Snackbar.make( view, "Tap the steering wheel. Let's go!", Snackbar.LENGTH_LONG )
                             .setAction( "Action", null ).show();
+                    getSupportActionBar().hide();
                 }else{
                     bStop=true;
+                    getSupportActionBar().show();
                     fab.setImageResource(  R.drawable.ic_running );
                     Snackbar.make( view, "Holding!", Snackbar.LENGTH_LONG )
                             .setAction( "Action", null ).show();
@@ -143,7 +149,6 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener( toggle );
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener( this );
-        final DialView dvSteering=findViewById(R.id.dial_volume);
 
         positionLogCurrent=new PositionLog(0,0, initialLocation,0 );
         tripLog=new TripLog();
@@ -235,14 +240,6 @@ public class MainActivity extends AppCompatActivity
     public void goForward(StreetViewPanorama panorama){
         if(bStop)return;
         positionLogCurrent=new PositionLog(0,i++,panorama );
-   /*     tripLog=new TripLog();
-        bundle = new Bundle();
-        bundle.putParcelable("data_of_position", positionLogCurrent);
-        tripLog.setArguments(bundle);
-
-        FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().replace( R.id.map_container, tripLog );
-        transaction.addToBackStack( null );
-        transaction.commit();*/
 
         StreetViewPanoramaLocation location = panorama.getLocation();
         StreetViewPanoramaCamera camera = mStreetViewPanorama.getPanoramaCamera();
@@ -252,7 +249,7 @@ public class MainActivity extends AppCompatActivity
 
         }
     }
-    public static StreetViewPanoramaLink findClosestLinkToBearing(StreetViewPanoramaLink[] links,
+    public StreetViewPanoramaLink findClosestLinkToBearing(StreetViewPanoramaLink[] links,
                                                                   float bearing) {
         float minBearingDiff = 360;
         StreetViewPanoramaLink closestLink = links[0];
@@ -262,6 +259,7 @@ public class MainActivity extends AppCompatActivity
                 closestLink = link;
             }
         }
+       // dvSteering.setBearing(closestLink.bearing);
         return closestLink;
     }
     // Find the difference between angle a and b as a value between 0 and 180
