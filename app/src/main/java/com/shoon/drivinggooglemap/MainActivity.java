@@ -2,41 +2,31 @@ package com.shoon.drivinggooglemap;
 
 import android.Manifest;
 import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.location.Location;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
-import android.view.Display;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.MenuItem;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
-
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
@@ -55,19 +45,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
 import com.google.android.gms.maps.model.StreetViewPanoramaLink;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
-import com.google.android.gms.maps.model.StreetViewPanoramaOrientation;
-import com.shoon.drivinggooglemap.SQL.TripLogSQLDAO;
-
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
-import android.view.animation.AccelerateInterpolator;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
-import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -110,6 +93,7 @@ public class MainActivity extends AppCompatActivity
     private DialView dvSteering;
     private SettingsViewModel viewModelSettings;
     private TripLogViewModel viewModelTripLog;
+    private int iTripID=0;
 
     private SettingRepository settingRepository;
     @Override
@@ -204,6 +188,7 @@ public class MainActivity extends AppCompatActivity
 
                 mMap.getUiSettings().setZoomControlsEnabled(true);
                 mMap.setOnMyLocationButtonClickListener(MainActivity.this);
+                mMap.setIndoorEnabled( true);
                 mMap.setOnMyLocationClickListener(MainActivity.this);
                 enableMyLocation();
                 UiSettings mUiSettings = mMap.getUiSettings();
@@ -239,7 +224,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        positionLogCurrent=new PositionLog(0,0, initialLocation,0 );
+        positionLogCurrent=new PositionLog(-1,0, initialLocation,0 );
         tripLog=new TripLog();
         bundle = new Bundle();
         bundle.putParcelable("data_of_position", positionLogCurrent);
@@ -253,7 +238,7 @@ public class MainActivity extends AppCompatActivity
         FragmentTransaction transaction2= getSupportFragmentManager().beginTransaction().replace(  R.id.lower, streetViewPanoramaFragment );
         transaction2.addToBackStack( null );
         transaction2.commit();
-        TextView tv=findViewById(R.id.textPosition );
+        tvDebug=findViewById(R.id.textPosition );
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(
             new OnStreetViewPanoramaReadyCallback() {
 
@@ -263,6 +248,7 @@ public class MainActivity extends AppCompatActivity
 
 
                     mStreetViewPanorama = panorama;
+
                     mMap.setOnMyLocationChangeListener(  new GoogleMap.OnMyLocationChangeListener() {
                         @Override
                         public void onMyLocationChange(Location location) {
@@ -272,7 +258,7 @@ public class MainActivity extends AppCompatActivity
                             if (dvSteering.isGoingForward()) {
                                 goForward( panorama );
                                 mMap.moveCamera( CameraUpdateFactory.newLatLng( positionLogCurrent.getdLatLng() ) );
-                                tv.setText( positionLogCurrent.getiSerialNumber() + " " + positionLogCurrent.getdLatLng().toString() );
+                                tvDebug.setText( positionLogCurrent.getiTripID() +positionLogCurrent.getiSerialNumber() + " " + positionLogCurrent.getdLatLng().toString() );
 
                             }
                         }
@@ -342,8 +328,16 @@ public class MainActivity extends AppCompatActivity
         StreetViewPanoramaCamera camera = mStreetViewPanorama.getPanoramaCamera();
         if (location != null && location.links != null) {
             StreetViewPanoramaLink link = findClosestLinkToBearing(location.links, camera.bearing);
-            mStreetViewPanorama.setPosition(link.panoId);
-
+              mStreetViewPanorama.setPosition(link.panoId);
+              float[] fResult=new float[5];
+            Location.distanceBetween( positionLogCurrent.getdLatitude(),
+                    positionLogCurrent.getdLongitude(),
+                    mStreetViewPanorama.getLocation().position.latitude,
+                    mStreetViewPanorama.getLocation().position.longitude,
+                    fResult);
+           // tvDebug.append( Float.toString( fResult[0] ) );
+        }else{
+            Toast.makeText(this, "Can't go furthermore!" + location, Toast.LENGTH_SHORT).show();
         }
     }
     public StreetViewPanoramaLink findClosestLinkToBearing(StreetViewPanoramaLink[] links,

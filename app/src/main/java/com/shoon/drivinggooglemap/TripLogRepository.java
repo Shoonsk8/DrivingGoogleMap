@@ -39,5 +39,6 @@ public class TripLogRepository {
     }
     public static void setPosition(MutableLiveData<PositionLog> positionLogMutableLiveData){
         position=positionLogMutableLiveData.getValue();
+        TripLogSQLDAO.add(position);
     }
 }

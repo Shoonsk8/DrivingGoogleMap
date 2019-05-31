@@ -78,8 +78,13 @@ public class TripLogSQLDAO {
         return pl;
     }
 
-    public static void add(PositionLog PositionLog){
-        ContentValues values = getContentValues(PositionLog);
+    public static void add(PositionLog positionLog){
+        if (positionLog.getiTripID() <= 0) {
+            positionLogTemp=positionLog;
+            return;
+
+        }
+        ContentValues values = getContentValues(positionLog);
 
 
         final long insert = db.insert(TripLogSQLContract.TripLogSQL.TABLE_NAME, null, values);
@@ -88,35 +93,35 @@ public class TripLogSQLDAO {
         return;
     }
 
-    public void delete(PositionLog PositionLog){
+    public void delete(PositionLog positionLog){
 
         int affectedRows = db.delete(TripLogSQLContract.TripLogSQL.TABLE_NAME,
                 TripLogSQLContract.TripLogSQL._ID + "=?",
-                new String[]{Integer.toString(PositionLog.getiTripID())});
+                new String[]{Integer.toString(positionLog.getiTripID())});
 
         System.out.printf( String.valueOf( affectedRows ) );
         return;
     }
 
-    public static void update(PositionLog PositionLog){
+    public static void update(PositionLog positionLog){
         int affectedRows = db.update(
                 TripLogSQLContract.TripLogSQL.TABLE_NAME,
-                getContentValues(PositionLog),
+                getContentValues(positionLog),
                 TripLogSQLContract.TripLogSQL._ID + "=?",  //id=1
-                new String[]{Integer.toString(PositionLog.getiTripID())});
+                new String[]{Integer.toString(positionLog.getiTripID())});
 
     }
 
-    private static ContentValues getContentValues(PositionLog PositionLog) {
+    private static ContentValues getContentValues(PositionLog positionLog) {
         ContentValues values = new ContentValues();
-        values.put(TripLogSQLContract.TripLogSQL._ID, PositionLog.getiTripID());
-        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID, PositionLog.getiTripID());
-        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_SERIALNUMBER, PositionLog.getiSerialNumber());
-        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_LATITUDE, PositionLog.getdLatitude());
-        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_LOGITUDE, PositionLog.getdLongitude());
-        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_BEARING, PositionLog.getfBearing());
-        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TILT, PositionLog.getfTilt());
-        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TIMESTAMP, PositionLog.getdTimeStamp());
+        values.put(TripLogSQLContract.TripLogSQL._ID, positionLog.getiTripID());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TRIPID, positionLog.getiTripID());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_SERIALNUMBER, positionLog.getiSerialNumber());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_LATITUDE, positionLog.getdLatitude());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_LOGITUDE, positionLog.getdLongitude());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_BEARING, positionLog.getfBearing());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TILT, positionLog.getfTilt());
+        values.put(TripLogSQLContract.TripLogSQL.COLUMN_NAME_TIMESTAMP, positionLog.getdTimeStamp());
         return values;
     }
 

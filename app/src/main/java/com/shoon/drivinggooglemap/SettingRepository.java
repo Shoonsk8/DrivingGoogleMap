@@ -4,6 +4,8 @@ import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 import android.util.Log;
 
+import com.shoon.drivinggooglemap.SQL.TripLogSQLDAO;
+
 public class SettingRepository {
     private static Settings settings;
     private static Context context;

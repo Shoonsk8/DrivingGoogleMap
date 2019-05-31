@@ -35,8 +35,8 @@ public class TripLog extends Fragment {
         tvTripLog=view.findViewById( R.id.textTripLog );
         tvTripLog.setTextColor( Color.RED );
 
-        TripLogViewModel tripLog=ViewModelProviders.of(  getActivity()).get(TripLogViewModel.class);
-        tripLog.getCurrentPosition().observe( getActivity(), position->runOnUiThread( new Runnable() {
+        TripLogViewModel tripLogViewModel=ViewModelProviders.of(  this).get(TripLogViewModel.class);
+        tripLogViewModel.getCurrentPosition().observe( this, position->runOnUiThread( new Runnable() {
             @Override
             public void run() {
                 assert position != null;
@@ -58,8 +58,14 @@ public class TripLog extends Fragment {
     private void runOnUiThread(Runnable runnable) {
         tvTripLog.setText(  Integer.toString( positionLog.getiSerialNumber())+" ");
         tvTripLog.append( positionLog.getdLatLng().toString());
-    }
 
+    }
+/*
+    private void runOnUiThread(Runnable runnable) {
+        tvTripLog.setText(  Integer.toString( positionLog.getiSerialNumber())+" ");
+        tvTripLog.append( positionLog.getdLatLng().toString());
+    }
+*/
 
 
 
