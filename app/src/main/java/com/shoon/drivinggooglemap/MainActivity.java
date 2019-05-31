@@ -263,7 +263,7 @@ public class MainActivity extends AppCompatActivity
 
 
                     mStreetViewPanorama = panorama;
-                    mMap.setOnMyLocationChangeListener( new GoogleMap.OnMyLocationChangeListener() {
+                    mMap.setOnMyLocationChangeListener(  new GoogleMap.OnMyLocationChangeListener() {
                         @Override
                         public void onMyLocationChange(Location location) {
                             StreetViewPanoramaCamera camera = new StreetViewPanoramaCamera( panorama.getPanoramaCamera().zoom, panorama.getPanoramaCamera().tilt, dvSteering.getBearig() );
@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity
                             // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
                             if (dvSteering.isGoingForward()) {
                                 goForward( panorama );
-                                mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( positionLogCurrent.getdLatLng(), 15 ) );
+                                mMap.moveCamera( CameraUpdateFactory.newLatLng( positionLogCurrent.getdLatLng() ) );
                                 tv.setText( positionLogCurrent.getiSerialNumber() + " " + positionLogCurrent.getdLatLng().toString() );
 
                             }
@@ -521,14 +521,15 @@ public class MainActivity extends AppCompatActivity
     int iCounter=0;
     @Override
     public void onMapLongClick(LatLng latLng) {
-        if(bPin==true){
-            mMap.addMarker( new MarkerOptions()
-                    .position(latLng).title( Integer.toString( iCounter++ ) )
-                    .snippet( latLng.toString()) );
-            player.start();
-            positionLogCurrent.setLatLng( latLng);
-        }
 
+        mMarker = mMap.addMarker(new MarkerOptions()
+                .position(positionLogCurrent.getdLatLng())
+                .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
+                .draggable(true));
+
+        player.start();
+
+        mStreetViewPanorama.setPosition( positionLogCurrent.getdLatLng() );
     }
 
     @Override
