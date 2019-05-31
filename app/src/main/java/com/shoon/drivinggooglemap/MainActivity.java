@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 } ));*/
 
-                mMarker.remove();
+                if(mMarker!=null)mMarker.remove();
                 mMarker = mMap.addMarker(new MarkerOptions()
                         .position(positionLogCurrent.getdLatLng())
                         .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
@@ -491,7 +491,7 @@ public class MainActivity extends AppCompatActivity
                 initialLocation=INDY;
                 positionLogCurrent.setLatLng( INDY);
                 positionLogCurrent.setLatLng( new LatLng( initialLocation.latitude,initialLocation.longitude));
-                mMarker.remove();
+                if(mMarker!=null)mMarker.remove();
                 mMarker = mMap.addMarker(new MarkerOptions()
                         .position(positionLogCurrent.getdLatLng())
                         .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
@@ -505,7 +505,7 @@ public class MainActivity extends AppCompatActivity
                 initialLocation=new LatLng( mMap.getMyLocation().getLatitude(),mMap.getMyLocation().getLongitude());
                 CameraPosition position=mMap.getCameraPosition();
                 positionLogCurrent.setLatLng( new LatLng( initialLocation.latitude,initialLocation.longitude));
-                mMarker.remove();
+                if(mMarker!=null)mMarker.remove();
                 mMarker = mMap.addMarker(new MarkerOptions()
                         .position(positionLogCurrent.getdLatLng())
                         .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
@@ -520,7 +520,7 @@ public class MainActivity extends AppCompatActivity
                 initialLocation=SYDNEY;
                 positionLogCurrent.setLatLng( SYDNEY);
                 positionLogCurrent.setLatLng( new LatLng( initialLocation.latitude,initialLocation.longitude));
-                mMarker.remove();
+                if(mMarker!=null)mMarker.remove();
                 mMarker = mMap.addMarker(new MarkerOptions()
                         .position(positionLogCurrent.getdLatLng())
                         .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
@@ -549,7 +549,7 @@ public class MainActivity extends AppCompatActivity
     int iCounter=0;
     @Override
     public void onMapLongClick(LatLng latLng) {
-        mMarker.remove();
+        if(mMarker!=null)mMarker.remove();
         mMarker = mMap.addMarker(new MarkerOptions()
                 .position(positionLogCurrent.getdLatLng())
                 .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
