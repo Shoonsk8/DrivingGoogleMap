@@ -14,6 +14,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -22,7 +23,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.view.Display;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -58,6 +61,7 @@ import com.shoon.drivinggooglemap.SQL.TripLogSQLDAO;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
@@ -175,6 +179,18 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onMapReady(GoogleMap map) {
+                new Thread( new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mStreetViewPanorama != null) {
+                            mStreetViewPanorama.setOnStreetViewPanoramaChangeListener( new OnStreetViewPanoramaChangeListener() {
+                                @Override
+                                public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
+                                    mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( positionLogCurrent.getdLatLng(), 15 ) );
+                                }
+                            } );
+                        }
+                    } } );
 
 
 
@@ -183,8 +199,8 @@ public class MainActivity extends AppCompatActivity
                 mMap.setOnMapLongClickListener(MainActivity.this);
                 mMap.setOnCameraIdleListener(MainActivity.this);
                 // Add a marker in Sydney and move the camera
-                mMap.addMarker( new MarkerOptions().position( initialLocation ).title( "Here I am" ) );
-                mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( initialLocation,15) );
+                mMap.addMarker( new MarkerOptions().position( positionLogCurrent.getdLatLng() ).title( "Here I am" ) );
+                mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( positionLogCurrent.getdLatLng(),15) );
 
                 mMap.getUiSettings().setZoomControlsEnabled(true);
                 mMap.setOnMyLocationButtonClickListener(MainActivity.this);
@@ -218,6 +234,7 @@ public class MainActivity extends AppCompatActivity
                         .position(positionLogCurrent.getdLatLng())
                         .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
                         .draggable(true));
+
                 player.start();
 
             }
@@ -236,69 +253,78 @@ public class MainActivity extends AppCompatActivity
         FragmentTransaction transaction2= getSupportFragmentManager().beginTransaction().replace(  R.id.lower, streetViewPanoramaFragment );
         transaction2.addToBackStack( null );
         transaction2.commit();
-
+        TextView tv=findViewById(R.id.textPosition );
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(
-                new OnStreetViewPanoramaReadyCallback() {
+            new OnStreetViewPanoramaReadyCallback() {
 
-                    @Override
-                    public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
-                        mStreetViewPanorama = panorama;
-                        mMap.setOnMyLocationChangeListener( new GoogleMap.OnMyLocationChangeListener() {
-                                                                @Override
-                                                                public void onMyLocationChange(Location location) {
-                                                                    StreetViewPanoramaCamera camera = new StreetViewPanoramaCamera( panorama.getPanoramaCamera().zoom, panorama.getPanoramaCamera().tilt, dvSteering.getBearig() );
-                                                                    panorama.animateTo( camera, settings.getlDulationAnimateTo() );
-                                                                    // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
-                                                                    if (dvSteering.isGoingForward()) {
-                                                                        goForward( panorama );
-                                                                    }
-                                                                }
-                                                            });
+                @Override
+                public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
+                    int rotation = getWindowManager().getDefaultDisplay().getRotation();
 
 
-                     /*   mStreetViewPanorama.setOnStreetViewPanoramaChangeListener(new StreetViewPanorama.OnStreetViewPanoramaChangeListener() {
-                            @Override
-                            public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
-                                if (streetViewPanoramaLocation != null && streetViewPanoramaLocation.links != null) {
-                                    // tvDebug.append(  panorama.pointToOrientation(  ) );
+                    mStreetViewPanorama = panorama;
+                    mMap.setOnMyLocationChangeListener( new GoogleMap.OnMyLocationChangeListener() {
+                        @Override
+                        public void onMyLocationChange(Location location) {
+                            StreetViewPanoramaCamera camera = new StreetViewPanoramaCamera( panorama.getPanoramaCamera().zoom, panorama.getPanoramaCamera().tilt, dvSteering.getBearig() );
+                            panorama.animateTo( camera, settings.getlDulationAnimateTo() );
+                            // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                            if (dvSteering.isGoingForward()) {
+                                goForward( panorama );
+                                mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( positionLogCurrent.getdLatLng(), 15 ) );
+                                tv.setText( positionLogCurrent.getiSerialNumber() + " " + positionLogCurrent.getdLatLng().toString() );
 
-                                    StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
-                                    panorama.animateTo( camera ,settings.getlDulationAnimateTo());
-                                    // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
-                                    if(dvSteering.isGoingForward()){
-                                        goForward(panorama);
-                                    }
-                                } else {
-                                    // location not available
-                                }
                             }
+                        }
+                    } );
 
-                        });*/
-                        mStreetViewPanorama.setOnStreetViewPanoramaChangeListener( MainActivity.this);
+                    mMap.setOnMarkerDragListener( new OnMarkerDragListener() {
+                        @Override
+                        public void onMarkerDragStart(Marker marker) {
 
-                        if (savedInstanceState == null) {
-                            mStreetViewPanorama.setPosition(positionLogCurrent.getdLatLng());
                         }
 
+                        @Override
+                        public void onMarkerDrag(Marker marker) {
 
-                        dvSteering.setOnTouchListener( new View.OnTouchListener() {
-                            @Override
-                            public boolean onTouch(View v, MotionEvent event) {
-                                StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
-                                panorama.animateTo( camera ,settings.getlDulationAnimateTo());
-                                // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
-                                if(dvSteering.isGoingForward()){
-                                    goForward( panorama );
-                                }
-                                return false;
-                            }
-                        } );
+                        }
+
+                        @Override
+                        public void onMarkerDragEnd(Marker marker) {
+                            positionLogCurrent.setLatLng( mMarker.getPosition() );
+                            panorama.setPosition( positionLogCurrent.getdLatLng() );
+                            panorama.setPosition( positionLogCurrent.getdLatLng() );
+                            panorama.animateTo( panorama.getPanoramaCamera(), 20 );
+                        }
+                    } );
+
+
+                    mStreetViewPanorama.setOnStreetViewPanoramaChangeListener( MainActivity.this );
+
+
+                    if(savedInstanceState ==null)
+
+                {
+                    mStreetViewPanorama.setPosition( positionLogCurrent.getdLatLng() );
+                }
+
+
+                    dvSteering.setOnTouchListener(new View.OnTouchListener()
+
+                {
+                    @Override
+                    public boolean onTouch (View v, MotionEvent event){
+                    StreetViewPanoramaCamera camera = new StreetViewPanoramaCamera( panorama.getPanoramaCamera().zoom, panorama.getPanoramaCamera().tilt, dvSteering.getBearig() );
+                    panorama.animateTo( camera, settings.getlDulationAnimateTo() );
+                    // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                    if (dvSteering.isGoingForward()) {
+                        goForward( panorama );
                     }
-                });
-
-        TextView tv=findViewById(R.id.textPosition );
-        tv.setText(positionLogCurrent.getdLatLng().toString() );
-
+                    return false;
+                }
+                } );
+            }
+            });
         player=MediaPlayer.create( this,R.raw.po );
     }
 
