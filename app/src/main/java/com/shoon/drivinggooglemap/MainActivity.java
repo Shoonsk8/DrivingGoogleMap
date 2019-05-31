@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 } ));*/
 
-
+                mMarker.remove();
                 mMarker = mMap.addMarker(new MarkerOptions()
                         .position(positionLogCurrent.getdLatLng())
                         .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
@@ -490,17 +490,45 @@ public class MainActivity extends AppCompatActivity
             case R.id.loncationIndy:
                 initialLocation=INDY;
                 positionLogCurrent.setLatLng( INDY);
+                positionLogCurrent.setLatLng( new LatLng( initialLocation.latitude,initialLocation.longitude));
+                mMarker.remove();
+                mMarker = mMap.addMarker(new MarkerOptions()
+                        .position(positionLogCurrent.getdLatLng())
+                        .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
+                        .draggable(true));
 
+                player.start();
+
+                mStreetViewPanorama.setPosition( positionLogCurrent.getdLatLng() );
                 break;
             case R.id.locationCurrent:
-                initialLocation=SYDNEY;
+                initialLocation=new LatLng( mMap.getMyLocation().getLatitude(),mMap.getMyLocation().getLongitude());
                 CameraPosition position=mMap.getCameraPosition();
                 positionLogCurrent.setLatLng( new LatLng( initialLocation.latitude,initialLocation.longitude));
+                mMarker.remove();
+                mMarker = mMap.addMarker(new MarkerOptions()
+                        .position(positionLogCurrent.getdLatLng())
+                        .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
+                        .draggable(true));
+
+                player.start();
+
+                mStreetViewPanorama.setPosition( positionLogCurrent.getdLatLng() );
                 break;
             case R.id.locationSydney:
-                positionLogCurrent.setLatLng( SYDNEY);
-                initialLocation=SYDNEY;
 
+                initialLocation=SYDNEY;
+                positionLogCurrent.setLatLng( SYDNEY);
+                positionLogCurrent.setLatLng( new LatLng( initialLocation.latitude,initialLocation.longitude));
+                mMarker.remove();
+                mMarker = mMap.addMarker(new MarkerOptions()
+                        .position(positionLogCurrent.getdLatLng())
+                        .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
+                        .draggable(true));
+
+                player.start();
+
+                mStreetViewPanorama.setPosition( positionLogCurrent.getdLatLng() );
                 break;
         }
         return true;
@@ -521,7 +549,7 @@ public class MainActivity extends AppCompatActivity
     int iCounter=0;
     @Override
     public void onMapLongClick(LatLng latLng) {
-
+        mMarker.remove();
         mMarker = mMap.addMarker(new MarkerOptions()
                 .position(positionLogCurrent.getdLatLng())
                 .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
