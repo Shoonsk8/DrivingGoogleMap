@@ -30,20 +30,38 @@ public class TripLog extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        TripLogViewModel tripLog=ViewModelProviders.of(  getActivity() ) .get(TripLogViewModel.class);
+
         view = inflater.inflate( R.layout.trip_log_fragment, container, false );
         tvTripLog=view.findViewById( R.id.textTripLog );
         tvTripLog.setTextColor( Color.RED );
 
+        TripLogViewModel tripLog=ViewModelProviders.of(  getActivity()).get(TripLogViewModel.class);
+        tripLog.getCurrentPosition().observe( getActivity(), position->runOnUiThread( new Runnable() {
+            @Override
+            public void run() {
+                assert position != null;
+                positionLog=position;
+                tvTripLog.setText(  Integer.toString( positionLog.getiSerialNumber())+" ");
+                tvTripLog.append( positionLog.getdLatLng().toString());
+            }
+        } ));
         Bundle bundle=getArguments();
         if (bundle != null) {
-           positionLog  = bundle.getParcelable("data_of_position");
+            positionLog  = bundle.getParcelable("data_of_position");
             tvTripLog.setText(  Integer.toString( positionLog.getiSerialNumber())+" ");
             tvTripLog.append( positionLog.getdLatLng().toString());
         }
 
         return view;
     }
+
+    private void runOnUiThread(Runnable runnable) {
+        tvTripLog.setText(  Integer.toString( positionLog.getiSerialNumber())+" ");
+        tvTripLog.append( positionLog.getdLatLng().toString());
+    }
+
+
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {

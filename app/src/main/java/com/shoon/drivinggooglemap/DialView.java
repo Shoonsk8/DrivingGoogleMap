@@ -32,7 +32,7 @@ public class DialView extends View {
     int iDotRaidus;// Radius of a dot
     int iWidthCanvas ;
     int iHeightCanvas;
-    private String strDirection="N";
+    private String strDirection="X";
     private float fBearing;
     private float fBearingLink;
     Context context;

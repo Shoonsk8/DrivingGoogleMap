@@ -17,17 +17,14 @@
         android:layout_weight="0.5"
         android:orientation="vertical">
 
-
-        <fragment
+        <FrameLayout
             android:id="@+id/upper"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-
-
             class="com.google.android.gms.maps.SupportMapFragment"
             />
-        <fragment
-            android:id="@+id/loweer"
+        <FrameLayout
+            android:id="@+id/lower"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/upper"

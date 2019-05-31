@@ -4,23 +4,29 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import com.google.android.gms.maps.SupportMapFragment;
+import android.arch.lifecycle.ViewModelProviders;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.plus.PlusOneButton;
 
-/**
- * A fragment with a Google +1 button.
- * Activities that contain this fragment must implement the
- * {@link SettingsFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link SettingsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class SettingsFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+    private SettingsViewModel mViewModel;
+
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     // The request code must be 0 or greater.
@@ -30,13 +36,22 @@ public class SettingsFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    private PlusOneButton mPlusOneButton;
+    private Button buttonToGobackToMap;
 
     private OnFragmentInteractionListener mListener;
 
     public SettingsFragment() {
         // Required empty public constructor
     }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated( savedInstanceState );
+        mViewModel = ViewModelProviders.of( this ).get( SettingsViewModel.class );
+
+        // TODO: Use the ViewModel
+    }
+
 
     /**
      * Use this factory method to create a new instance of
@@ -69,11 +84,26 @@ public class SettingsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate( R.layout.fragment_settings, container, false );
+        final View view = inflater.inflate( R.layout.fragment_settings, container, false );
 
         //Find the +1 button
-        mPlusOneButton = (PlusOneButton) view.findViewById( R.id.plus_one_button );
+        buttonToGobackToMap = (Button)view.findViewById( R.id.buttonGobacktoMap);
+        buttonToGobackToMap.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Settings settings=new Settings();
+                EditText et=view.findViewById( R.id.inputDuration);
+                settings.lDulationAnimateTo=Long.parseLong( et.getText().toString());
+                Bundle bundle=new Bundle(  );
+                bundle.putSerializable("data_settings", settings );
+                SupportMapFragment mapFragment = new SupportMapFragment();
+                mapFragment.setArguments( bundle );
 
+                FragmentTransaction transaction=getFragmentManager().beginTransaction().add( R.id.upper, mapFragment);
+                transaction.addToBackStack( null );
+                transaction.commit();
+            }
+        } );
         return view;
     }
 
@@ -81,14 +111,12 @@ public class SettingsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // Refresh the state of the +1 button each time the activity receives focus.
-        mPlusOneButton.initialize( PLUS_ONE_URL, PLUS_ONE_REQUEST_CODE );
     }
 
     // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
+    public void onButtonPressed(Settings settings) {
         if (mListener != null) {
-            mListener.onFragmentInteraction( uri );
+            mListener.onFragmentInteraction( settings );
         }
     }
 
@@ -121,7 +149,7 @@ public class SettingsFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Settings settings);
     }
 
 }

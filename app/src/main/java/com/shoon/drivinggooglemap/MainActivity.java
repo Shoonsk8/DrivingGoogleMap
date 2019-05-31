@@ -1,10 +1,14 @@
 package com.shoon.drivinggooglemap;
 
 import android.Manifest;
+import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -73,7 +77,7 @@ public class MainActivity extends AppCompatActivity
         SettingsFragment.OnFragmentInteractionListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
         OnStreetViewPanoramaChangeListener{
-    private Settings settings;
+    private static Settings settings;
     private Context context;
     private static final String MARKER_POSITION_KEY = "MarkerPosition";
 
@@ -100,12 +104,18 @@ public class MainActivity extends AppCompatActivity
     private TripLog tripLog;
     private boolean bStop=true;
     private DialView dvSteering;
+    private SettingsViewModel viewModelSettings;
+    private TripLogViewModel viewModelTripLog;
+
+    private SettingRepository settingRepository;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
         context=getApplicationContext();
         TripLogRepository tripLogRepository=new TripLogRepository(  context );
+        settingRepository=new SettingRepository( context );
+
         dvSteering=findViewById(R.id.dial_volume);
         settings=new Settings();
 
@@ -149,15 +159,7 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener( this );
 
-        positionLogCurrent=new PositionLog(0,0, initialLocation,0 );
-        tripLog=new TripLog();
-        bundle = new Bundle();
-        bundle.putParcelable("data_of_position", positionLogCurrent);
-        tripLog.setArguments(bundle);
 
-        FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().replace(  R.id.upper, tripLog );
-        transaction.addToBackStack( null );
-        transaction.commit();
 
         if (savedInstanceState == null) {
             markerPosition = initialLocation;
@@ -173,15 +175,62 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onMapReady(GoogleMap map) {
-                map.setOnMarkerDragListener(MainActivity.this);
+
+
+
+                mMap = map;
+                mMap.setOnMapClickListener(MainActivity.this);
+                mMap.setOnMapLongClickListener(MainActivity.this);
+                mMap.setOnCameraIdleListener(MainActivity.this);
+                // Add a marker in Sydney and move the camera
+                mMap.addMarker( new MarkerOptions().position( initialLocation ).title( "Here I am" ) );
+                mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( initialLocation,15) );
+
+                mMap.getUiSettings().setZoomControlsEnabled(true);
+                mMap.setOnMyLocationButtonClickListener(MainActivity.this);
+                mMap.setOnMyLocationClickListener(MainActivity.this);
+                enableMyLocation();
+                UiSettings mUiSettings = mMap.getUiSettings();
+                //  mUiSettings.setMapToolbarEnabled(true);
+                mUiSettings.setZoomControlsEnabled(true);
+                mUiSettings.setScrollGesturesEnabled(true);
+                mUiSettings.setZoomGesturesEnabled(true);
+                mUiSettings.setTiltGesturesEnabled(true);
+                mUiSettings.setRotateGesturesEnabled(true);
+
                 // Creates a draggable marker. Long press to drag.
-                mMarker = map.addMarker(new MarkerOptions()
-                        .position(markerPosition)
+              /*  TripLogViewModel tripLog=ViewModelProviders.of(MainActivity.this).get(TripLogViewModel.class);
+                tripLog.getCurrentPosition().observe( MainActivity.this, position->runOnUiThread( new Runnable() {
+                    @Override
+                    public void run() {
+                        assert position != null;
+                        markerPosition=position.getdLatLng();
+                        mMarker = map.addMarker(new MarkerOptions()
+                                .position(markerPosition)
+                                .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
+                                .draggable(true));
+                        player.start();
+                    }
+                } ));*/
+
+
+                mMarker = mMap.addMarker(new MarkerOptions()
+                        .position(positionLogCurrent.getdLatLng())
                         .icon(BitmapDescriptorFactory.fromResource( R.drawable.pegman))
                         .draggable(true));
                 player.start();
+
             }
         });
+        positionLogCurrent=new PositionLog(0,0, initialLocation,0 );
+        tripLog=new TripLog();
+        bundle = new Bundle();
+        bundle.putParcelable("data_of_position", positionLogCurrent);
+        tripLog.setArguments(bundle);
+
+        FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().add(  R.id.upper, tripLog );
+        transaction.addToBackStack( null );
+        transaction.commit();
 
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =new SupportStreetViewPanoramaFragment();
         FragmentTransaction transaction2= getSupportFragmentManager().beginTransaction().replace(  R.id.lower, streetViewPanoramaFragment );
@@ -189,58 +238,79 @@ public class MainActivity extends AppCompatActivity
         transaction2.commit();
 
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(
-            new OnStreetViewPanoramaReadyCallback() {
+                new OnStreetViewPanoramaReadyCallback() {
 
-                @Override
-                public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
-            mStreetViewPanorama = panorama;
-            mStreetViewPanorama.setOnStreetViewPanoramaChangeListener(
-                    MainActivity.this);
-            mStreetViewPanorama.setOnStreetViewPanoramaChangeListener(new StreetViewPanorama.OnStreetViewPanoramaChangeListener() {
-                @Override
-                public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
-                    if (streetViewPanoramaLocation != null && streetViewPanoramaLocation.links != null) {
-                        // tvDebug.append(  panorama.pointToOrientation(  ) );
+                    @Override
+                    public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
+                        mStreetViewPanorama = panorama;
+                        mMap.setOnMyLocationChangeListener( new GoogleMap.OnMyLocationChangeListener() {
+                                                                @Override
+                                                                public void onMyLocationChange(Location location) {
+                                                                    StreetViewPanoramaCamera camera = new StreetViewPanoramaCamera( panorama.getPanoramaCamera().zoom, panorama.getPanoramaCamera().tilt, dvSteering.getBearig() );
+                                                                    panorama.animateTo( camera, settings.getlDulationAnimateTo() );
+                                                                    // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                                                                    if (dvSteering.isGoingForward()) {
+                                                                        goForward( panorama );
+                                                                    }
+                                                                }
+                                                            });
 
-                        StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
-                        panorama.animateTo( camera ,settings.getlDulationAnimateTo());
-                        // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
-                        if(dvSteering.isGoingForward()){
-                            goForward(panorama);
+
+                     /*   mStreetViewPanorama.setOnStreetViewPanoramaChangeListener(new StreetViewPanorama.OnStreetViewPanoramaChangeListener() {
+                            @Override
+                            public void onStreetViewPanoramaChange(StreetViewPanoramaLocation streetViewPanoramaLocation) {
+                                if (streetViewPanoramaLocation != null && streetViewPanoramaLocation.links != null) {
+                                    // tvDebug.append(  panorama.pointToOrientation(  ) );
+
+                                    StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
+                                    panorama.animateTo( camera ,settings.getlDulationAnimateTo());
+                                    // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                                    if(dvSteering.isGoingForward()){
+                                        goForward(panorama);
+                                    }
+                                } else {
+                                    // location not available
+                                }
+                            }
+
+                        });*/
+                        mStreetViewPanorama.setOnStreetViewPanoramaChangeListener( MainActivity.this);
+
+                        if (savedInstanceState == null) {
+                            mStreetViewPanorama.setPosition(positionLogCurrent.getdLatLng());
                         }
-                    } else {
-                        // location not available
+
+
+                        dvSteering.setOnTouchListener( new View.OnTouchListener() {
+                            @Override
+                            public boolean onTouch(View v, MotionEvent event) {
+                                StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
+                                panorama.animateTo( camera ,settings.getlDulationAnimateTo());
+                                // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
+                                if(dvSteering.isGoingForward()){
+                                    goForward( panorama );
+                                }
+                                return false;
+                            }
+                        } );
                     }
-                }
+                });
 
-            });
-            if (savedInstanceState == null) {
-                mStreetViewPanorama.setPosition(positionLogCurrent.getdLatLng());
-            }
-
-            dvSteering.setOnTouchListener( new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    StreetViewPanoramaCamera camera=new StreetViewPanoramaCamera(panorama.getPanoramaCamera().zoom,panorama.getPanoramaCamera().tilt,dvSteering.getBearig());
-                    panorama.animateTo( camera ,settings.getlDulationAnimateTo());
-                   // tvDebug.setText( Float.toString(  dvSteering.getBearig()));
-                    if(dvSteering.isGoingForward()){
-                         goForward( panorama );
-                    }
-                    return false;
-                }
-            } );
-            }
-        });
-
-
+        TextView tv=findViewById(R.id.textPosition );
+        tv.setText(positionLogCurrent.getdLatLng().toString() );
 
         player=MediaPlayer.create( this,R.raw.po );
     }
 
     public void goForward(StreetViewPanorama panorama){
         if(bStop)return;
-        positionLogCurrent=new PositionLog(0,i++,panorama );
+
+        MainActivity.this.positionLogCurrent=new PositionLog(0,i++,panorama );
+        MainActivity.this.setIntent( new Intent( String.valueOf( context ) ) );
+        viewModelTripLog= ViewModelProviders.of(MainActivity.this).get(TripLogViewModel.class);
+        MutableLiveData<PositionLog> positionLogMutableLiveData = new MutableLiveData<>();
+        positionLogMutableLiveData.setValue( positionLogCurrent );
+        viewModelTripLog.setPostion( positionLogMutableLiveData );
 
         StreetViewPanoramaLocation location = panorama.getLocation();
         StreetViewPanoramaCamera camera = mStreetViewPanorama.getPanoramaCamera();
@@ -352,7 +422,10 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Handle the camera action
+            SupportMapFragment mapFragment = new SupportMapFragment();
+            FragmentTransaction transaction= getSupportFragmentManager().beginTransaction().add( R.id.upper, mapFragment);
+            transaction.addToBackStack( null );
+            transaction.commit();
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -390,11 +463,16 @@ public class MainActivity extends AppCompatActivity
         switch (item.getItemId()) {
             case R.id.loncationIndy:
                 initialLocation=INDY;
+                positionLogCurrent.setLatLng( INDY);
+
                 break;
             case R.id.locationCurrent:
                 initialLocation=SYDNEY;
+                CameraPosition position=mMap.getCameraPosition();
+                positionLogCurrent.setLatLng( new LatLng( initialLocation.latitude,initialLocation.longitude));
                 break;
             case R.id.locationSydney:
+                positionLogCurrent.setLatLng( SYDNEY);
                 initialLocation=SYDNEY;
 
                 break;
@@ -403,27 +481,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setOnMapClickListener(this);
-        mMap.setOnMapLongClickListener(this);
-        mMap.setOnCameraIdleListener(this);
-        // Add a marker in Sydney and move the camera
-        mMap.addMarker( new MarkerOptions().position( initialLocation ).title( "Here I am" ) );
-        mMap.moveCamera( CameraUpdateFactory.newLatLng( initialLocation) );
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
-        enableMyLocation();
-        UiSettings mUiSettings = mMap.getUiSettings();
-      //  mUiSettings.setMapToolbarEnabled(true);
-        mUiSettings.setZoomControlsEnabled(true);
-        mUiSettings.setScrollGesturesEnabled(true);
-        mUiSettings.setZoomGesturesEnabled(true);
-        mUiSettings.setTiltGesturesEnabled(true);
-        mUiSettings.setRotateGesturesEnabled(true);
-    }
 
     @Override
     public void onCameraIdle() {
@@ -516,8 +573,14 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
+
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public void onFragmentInteraction(Settings settings) {
+
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
 
     }
 }
